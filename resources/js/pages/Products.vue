@@ -27,11 +27,11 @@ defineProps<{
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Products',
+        title: 'Ürünler',
         href: '/products',
     },
     {
-        title: 'Add Product',
+        title: 'Ürün Ekle',
         href: '/products/create',
     },
 ];
@@ -57,7 +57,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Add Product" />
+    <Head title="Ürün Ekle" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="max-w-4xl mx-auto py-8">
@@ -91,7 +91,7 @@ const submit = () => {
                                     autofocus
                                     :tabindex="1"
                                     v-model="form.name"
-                                    placeholder="Enter product name"
+                                    placeholder="Ürün adını girin"
                                     class="h-11"
                                 />
                                 <InputError :message="form.errors.name" />
@@ -107,7 +107,7 @@ const submit = () => {
                                     required
                                     :tabindex="2"
                                     v-model="form.sku"
-                                    placeholder="e.g., PRD-001"
+                                    placeholder="Ör: PRD-001"
                                     class="h-11"
                                 />
                                 <InputError :message="form.errors.sku" />
@@ -123,7 +123,7 @@ const submit = () => {
                                 id="description"
                                 :tabindex="3"
                                 v-model="form.description"
-                                placeholder="Describe your product in detail..."
+                                placeholder="Ürününüzü detaylı bir şekilde açıklayın..."
                                 rows="4"
                                 class="resize-none"
                             />
@@ -173,15 +173,11 @@ const submit = () => {
                                 </Label>
                                 <Select v-model="form.category_id" required>
                                     <SelectTrigger class="h-11" :tabindex="6">
-                                        <SelectValue placeholder="Select a category" />
+                                        <SelectValue placeholder="Kategori Seçin" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">Electronics</SelectItem>
-                                        <SelectItem value="2">Clothing</SelectItem>
-                                        <SelectItem value="3">Books</SelectItem>
-                                        <SelectItem value="4">Home & Garden</SelectItem>
-                                        <SelectItem value="5">Sports</SelectItem>
-                                    </SelectContent>
+                                    <!--<SelectContent>-->
+                                    <!--    Add categories-->
+                                    <!--</SelectContent>-->
                                 </Select>
                                 <InputError :message="form.errors.category_id" />
                             </div>
@@ -210,7 +206,7 @@ const submit = () => {
                             >
                                 <LoaderCircle v-if="form.processing" class="h-5 w-5 animate-spin mr-2" />
                                 <Package v-else class="h-5 w-5 mr-2" />
-                                {{ form.processing ? 'Adding Product...' : 'Add Product' }}
+                                {{ form.processing ? 'Ürün Ekleniyor...' : 'Ürün Ekle' }}
                             </Button>
 
                             <Button
@@ -220,7 +216,7 @@ const submit = () => {
                                 :tabindex="10"
                                 @click="form.reset()"
                             >
-                                Clear Form
+                                Formu Temizle
                             </Button>
                         </div>
                     </form>
