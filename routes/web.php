@@ -15,5 +15,14 @@ Route::get('products', function () {
     return Inertia::render('Products');
 })->middleware(['auth', 'verified'])->name('products');
 
+Route::get('customers', function () {
+    return Inertia::render('Customers');
+})->middleware(['auth', 'verified'])->name('customers');
+
+Route::get('add-customer', function () {
+    return Inertia::render('AddCustomer');
+})->middleware(['auth', 'verified'])->name('add-customer');
+
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
