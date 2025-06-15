@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -22,6 +23,10 @@ Route::get('customers', function () {
 Route::get('add-customer', function () {
     return Inertia::render('AddCustomer');
 })->middleware(['auth', 'verified'])->name('add-customer');
+
+// Backend Api
+Route::post('customer', [CustomerController::class, 'create'])
+    ->name('create-customer');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
