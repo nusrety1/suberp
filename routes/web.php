@@ -16,9 +16,8 @@ Route::get('products', function () {
     return Inertia::render('Products');
 })->middleware(['auth', 'verified'])->name('products');
 
-Route::get('customers', function () {
-    return Inertia::render('Customers');
-})->middleware(['auth', 'verified'])->name('customers');
+Route::get('customers', [CustomerController::class, 'list'])
+    ->middleware(['auth', 'verified'])->name('customers');
 
 Route::get('add-customer', function () {
     return Inertia::render('AddCustomer');
