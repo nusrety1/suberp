@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -15,23 +14,18 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Form verilerini yönetmek için Inertia form helper'ı kullanıyoruz
 const form = useForm({
-    first_name: '',
-    last_name: '',
+    name: '',
+    surname: '',
     email: '',
     phone: '',
     address: '',
-    city: '',
-    postal_code: '',
-    notes: ''
+    description: ''
 });
 
-// Form gönderme fonksiyonu
 const submitForm = () => {
-    form.post('/customers', {
+    form.post(route('create-customer'), {
         onSuccess: () => {
-            // Başarılı kayıt sonrası yapılacak işlemler
             console.log('Müşteri başarıyla eklendi');
         },
         onError: (errors) => {
@@ -39,9 +33,6 @@ const submitForm = () => {
         }
     });
 };
-
-// Loading durumu için
-const isLoading = ref(false);
 </script>
 
 <template>
@@ -65,39 +56,39 @@ const isLoading = ref(false);
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Ad -->
                         <div class="space-y-2">
-                            <label for="first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Ad <span class="text-red-500">*</span>
                             </label>
                             <input
-                                id="first_name"
-                                v-model="form.first_name"
+                                id="name"
+                                v-model="form.name"
                                 type="text"
                                 required
                                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
                                 placeholder="Müşterinin adı"
-                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.first_name }"
+                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.name }"
                             />
-                            <p v-if="form.errors.first_name" class="text-sm text-red-600 dark:text-red-400">
-                                {{ form.errors.first_name }}
+                            <p v-if="form.errors.name" class="text-sm text-red-600 dark:text-red-400">
+                                {{ form.errors.name }}
                             </p>
                         </div>
 
                         <!-- Soyad -->
                         <div class="space-y-2">
-                            <label for="last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label for="surname" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Soyad <span class="text-red-500">*</span>
                             </label>
                             <input
-                                id="last_name"
-                                v-model="form.last_name"
+                                id="surname"
+                                v-model="form.surname"
                                 type="text"
                                 required
                                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
                                 placeholder="Müşterinin soyadı"
-                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.last_name }"
+                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.surname }"
                             />
-                            <p v-if="form.errors.last_name" class="text-sm text-red-600 dark:text-red-400">
-                                {{ form.errors.last_name }}
+                            <p v-if="form.errors.surname" class="text-sm text-red-600 dark:text-red-400">
+                                {{ form.errors.surname }}
                             </p>
                         </div>
 
@@ -138,42 +129,6 @@ const isLoading = ref(false);
                                 {{ form.errors.phone }}
                             </p>
                         </div>
-
-                        <!-- Şehir -->
-                        <div class="space-y-2">
-                            <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Şehir
-                            </label>
-                            <input
-                                id="city"
-                                v-model="form.city"
-                                type="text"
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
-                                placeholder="İstanbul"
-                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.city }"
-                            />
-                            <p v-if="form.errors.city" class="text-sm text-red-600 dark:text-red-400">
-                                {{ form.errors.city }}
-                            </p>
-                        </div>
-
-                        <!-- Posta Kodu -->
-                        <div class="space-y-2">
-                            <label for="postal_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Posta Kodu
-                            </label>
-                            <input
-                                id="postal_code"
-                                v-model="form.postal_code"
-                                type="text"
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
-                                placeholder="34000"
-                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.postal_code }"
-                            />
-                            <p v-if="form.errors.postal_code" class="text-sm text-red-600 dark:text-red-400">
-                                {{ form.errors.postal_code }}
-                            </p>
-                        </div>
                     </div>
 
                     <!-- Adres - Tam genişlik -->
@@ -197,19 +152,19 @@ const isLoading = ref(false);
 
                     <!-- Notlar -->
                     <div class="mt-6 space-y-2">
-                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Notlar
                         </label>
                         <textarea
-                            id="notes"
-                            v-model="form.notes"
+                            id="description"
+                            v-model="form.description"
                             rows="3"
                             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200 resize-none"
                             placeholder="Müşteri hakkında ek bilgiler..."
-                            :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.notes }"
+                            :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.description }"
                         ></textarea>
-                        <p v-if="form.errors.notes" class="text-sm text-red-600 dark:text-red-400">
-                            {{ form.errors.notes }}
+                        <p v-if="form.errors.description" class="text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.description }}
                         </p>
                     </div>
 
