@@ -23,6 +23,5 @@ Route::get('add-customer', function () {
     return Inertia::render('AddCustomer');
 })->middleware(['auth', 'verified'])->name('add-customer');
 
-
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
