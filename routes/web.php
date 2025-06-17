@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -12,9 +13,12 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('products', function () {
-    return Inertia::render('Products');
-})->middleware(['auth', 'verified'])->name('products');
+Route::get('products', [ProductController::class, 'list'])
+    ->middleware(['auth', 'verified'])->name('products');
+
+Route::get('add-product', function () {
+    return Inertia::render('AddProduct');
+})->middleware(['auth', 'verified'])->name('add-product');
 
 Route::get('customers', [CustomerController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('customers');
@@ -26,6 +30,9 @@ Route::get('add-customer', function () {
 // Backend Api
 Route::post('customer', [CustomerController::class, 'create'])
     ->name('create-customer');
+
+Route::post('product', [ProductController::class, 'create'])
+    ->name('create-product');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
