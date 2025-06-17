@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerCreateRequest;
 use App\Models\Customer;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CustomerController extends Controller
@@ -23,7 +22,7 @@ class CustomerController extends Controller
         return $isCreate ? to_route('customers') : false;
     }
 
-    public function list(Request $request)
+    public function list()
     {
         $customers = Customer::query()->paginate(30);
 
