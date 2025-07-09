@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -24,6 +25,13 @@ Route::get('customers', [CustomerController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('customers');
 
 Route::get('add-customer', function () {
+    return Inertia::render('AddCustomer');
+})->middleware(['auth', 'verified'])->name('add-customer');
+
+Route::get('purchases', [PurchaseController::class, 'list'])
+    ->middleware(['auth', 'verified'])->name('purchases');
+
+Route::get('make-purchase', function () {
     return Inertia::render('AddCustomer');
 })->middleware(['auth', 'verified'])->name('add-customer');
 
