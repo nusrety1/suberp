@@ -33,8 +33,41 @@ class PurchaseController extends Controller
     {
         $purchases = Purchase::query()
             ->with('customer')
-            ->orderBy('repayment_date', 'desc')->paginate(30);
+            ->orderBy('repayment_date', 'desc')
+            ->paginate(30);
 
         return Inertia::render('Purchases', ['purchases' => $purchases]);
+    }
+
+    public function details(int $id)
+    {
+        $purchase = Purchase::query()
+            ->with('customer')
+            ->where('id', $id)
+            ->get()
+            ->toArray();
+
+        $purchaseProducts = PurchaseProduct::query()
+            ->where('purchase_id', $id)
+            ->get();
+
+        return response()->json([
+            'purchase' => $purchase,
+            'products' => $purchaseProducts,
+            'total_receivable_amount' => $this->calcTotalReceivableAmount($purchase[0]['id']),
+        ]);
+    }
+
+    protected function calcTotalReceivableAmount(int $purchaseId)
+    {
+        $purchaseProducts = PurchaseProduct::query()
+            ->with(['product', 'purchase'])
+            ->where('purchase_id', $purchaseId)
+            ->get()
+            ->toArray();
+
+        return array_reduce($purchaseProducts, function ($carry, $item) {
+            return $carry + ($item['quantity'] * $item['product']['price']);
+        }, 0);
     }
 }
