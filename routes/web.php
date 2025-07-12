@@ -16,6 +16,7 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Products
 Route::get('products', [ProductController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('products');
 
@@ -26,6 +27,7 @@ Route::get('add-product', function () {
     return Inertia::render('AddProduct');
 })->middleware(['auth', 'verified'])->name('add-product');
 
+// Customers
 Route::get('customers', [CustomerController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('customers');
 
@@ -36,14 +38,18 @@ Route::get('add-customer', function () {
     return Inertia::render('AddCustomer');
 })->middleware(['auth', 'verified'])->name('add-customer');
 
+// Purchases
 Route::get('purchases', [PurchaseController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('purchases');
+
+Route::get('purchases/{id}/details', [PurchaseController::class, 'details'])
+    ->middleware(['auth', 'verified'])->name('purchase-details');
 
 Route::get('add-purchase', function () {
     return Inertia::render('AddPurchase');
 })->middleware(['auth', 'verified'])->name('add-purchase');
 
-// Backend Api
+// Post Apis
 Route::post('customer', [CustomerController::class, 'create'])
     ->name('create-customer');
 

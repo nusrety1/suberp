@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Class Purchase
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $repayment_date
  * @property float $bargain_price
  * @property-read Customer $customer
+ * @property-read PurchaseProduct $purchaseProducts
  *
  * @method static where(string $column, mixed $value) : Builder
  * @method static create(array $attributes) : Model
@@ -43,5 +45,10 @@ class Purchase extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(PurchaseProduct::class);
     }
 }

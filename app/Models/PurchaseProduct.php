@@ -3,15 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Class Purchase
- *
- * @property int $id
- * @property int $customer_id
- * @property string $repayment_date
- * @property float $bargain_price
- * @property-read Customer $customer
  *
  * @method static where(string $column, mixed $value) : Builder
  * @method static create(array $attributes) : Model
@@ -22,6 +17,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property float $purchase_time_unit_price
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Purchase $purchase
+ * @property-read Product $product
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseProduct newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseProduct newQuery()
@@ -41,4 +38,14 @@ class PurchaseProduct extends Model
     protected $fillable = [
         'purchase_id', 'product_id', 'quantity', 'purchase_time_unit_price',
     ];
+
+    public function purchase(): BelongsTo
+    {
+        return $this->belongsTo(Purchase::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }
