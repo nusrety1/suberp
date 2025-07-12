@@ -1,6 +1,35 @@
-<script>
+<script lang="ts">
 import { ref, computed, watch } from 'vue'
 import axios from 'axios'
+
+interface Customer {
+    id: number
+    full_name: string
+    email: string
+    phone: string
+}
+
+interface Product {
+    id: number
+    product_id: number
+    quantity: number
+    purchase_time_unit_price: number
+}
+
+interface Purchase {
+    id: number
+    customer: Customer
+    repayment_data: string
+    bargain_price: number
+    description: string
+    created_at: string
+}
+
+interface ApiResponse {
+    purchase: Purchase | Purchase[]
+    products: Product[]
+    total_receivable_amount: number
+}
 
 export default {
     name: 'PurchaseDetailsModal',
@@ -15,26 +44,26 @@ export default {
         }
     },
     emits: ['close'],
-    setup(props, { emit }) {
-        const loading = ref(false)
-        const error = ref(null)
-        const purchaseData = ref(null)
-        const products = ref([])
-        const totalReceivableAmount = ref(0)
+    setup(props: any, { emit }: any) {
+        const loading = ref<boolean>(false)
+        const error = ref<string | null>(null)
+        const purchaseData = ref<Purchase | null>(null)
+        const products = ref<Product[]>([])
+        const totalReceivableAmount = ref<number>(0)
 
         // Computed properties
-        const totalAmount = computed(() => {
-            return products.value.reduce((total, product) => {
+        const totalAmount = computed<number>(() => {
+            return products.value.reduce((total: number, product: Product) => {
                 return total + (product.quantity * product.purchase_time_unit_price)
             }, 0)
         })
 
         // Methods
-        const closeModal = () => {
+        const closeModal = (): void => {
             emit('close')
         }
 
-        const fetchPurchaseDetails = async () => {
+        const fetchPurchaseDetails = async (): Promise<void> => {
             if (!props.purchaseId) {
                 console.log('purchaseId yok:', props.purchaseId)
                 return
@@ -45,7 +74,7 @@ export default {
             error.value = null
 
             try {
-                const response = await axios.get(`/purchases/${props.purchaseId}/details`)
+                const response = await axios.get<ApiResponse>(`/purchases/${props.purchaseId}/details`)
                 console.log('API yanıtı:', response.data)
 
                 // API'den gelen veri yapısına göre ayarlama
@@ -62,7 +91,7 @@ export default {
                 console.log('products:', products.value)
                 console.log('totalReceivableAmount:', totalReceivableAmount.value)
 
-            } catch (err) {
+            } catch (err: any) {
                 error.value = 'Satış detayları yüklenirken bir hata oluştu.'
                 console.error('API Error:', err)
             } finally {
@@ -70,24 +99,20 @@ export default {
             }
         }
 
-        const formatDate = (dateString) => {
+        const formatDate = (dateString: string | null): string => {
             if (!dateString) return 'N/A'
 
-            try {
-                const date = new Date(dateString)
-                return date.toLocaleDateString('tr-TR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
-            } catch (e) {
-                return dateString
-            }
+            const date = new Date(dateString)
+            return date.toLocaleDateString('tr-TR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
         }
 
-        const formatCurrency = (amount) => {
+        const formatCurrency = (amount: number | null): string => {
             if (!amount && amount !== 0) return 'N/A'
 
             return new Intl.NumberFormat('tr-TR', {
@@ -97,14 +122,14 @@ export default {
         }
 
         // Watchers
-        watch(() => props.isOpen, (newVal) => {
+        watch(() => props.isOpen, (newVal: boolean) => {
             console.log('isOpen değişti:', newVal, 'purchaseId:', props.purchaseId)
             if (newVal && props.purchaseId) {
                 fetchPurchaseDetails()
             }
         }, { immediate: true })
 
-        watch(() => props.purchaseId, (newVal) => {
+        watch(() => props.purchaseId, (newVal: number | string | null) => {
             console.log('purchaseId değişti:', newVal, 'isOpen:', props.isOpen)
             if (newVal && props.isOpen) {
                 fetchPurchaseDetails()
