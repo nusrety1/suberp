@@ -6,6 +6,8 @@ use App\Http\Controllers\PurchaseController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// todo: use prefix
+
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
@@ -17,12 +19,18 @@ Route::get('dashboard', function () {
 Route::get('products', [ProductController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('products');
 
+Route::get('products/basic-list', [ProductController::class, 'listBasic'])
+    ->middleware(['auth', 'verified'])->name('products-basic-list');
+
 Route::get('add-product', function () {
     return Inertia::render('AddProduct');
 })->middleware(['auth', 'verified'])->name('add-product');
 
 Route::get('customers', [CustomerController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('customers');
+
+Route::get('customers/basic-list', [CustomerController::class, 'listBasic'])
+    ->middleware(['auth', 'verified'])->name('customers-basic-list');
 
 Route::get('add-customer', function () {
     return Inertia::render('AddCustomer');
@@ -31,9 +39,9 @@ Route::get('add-customer', function () {
 Route::get('purchases', [PurchaseController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('purchases');
 
-Route::get('make-purchase', function () {
-    return Inertia::render('AddCustomer');
-})->middleware(['auth', 'verified'])->name('add-customer');
+Route::get('add-purchase', function () {
+    return Inertia::render('AddPurchase');
+})->middleware(['auth', 'verified'])->name('add-purchase');
 
 // Backend Api
 Route::post('customer', [CustomerController::class, 'create'])
@@ -41,6 +49,9 @@ Route::post('customer', [CustomerController::class, 'create'])
 
 Route::post('product', [ProductController::class, 'create'])
     ->name('create-product');
+
+Route::post('purchase/create', [PurchaseController::class, 'create'])
+    ->name('create-purchase');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
