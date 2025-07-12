@@ -6,6 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import {
+    BookPlus,
     LayoutGrid,
     Package,
     ShoppingBag,
@@ -28,6 +29,11 @@ const mainNavItems: NavItem[] = [
         title: 'Müşteriler',
         href: '/customers',
         icon: Users,
+    },
+    {
+        title: 'Malzemeler',
+        href: '/supplies',
+        icon: BookPlus,
     },
     {
         title: 'Satışlar',

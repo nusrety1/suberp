@@ -34,6 +34,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Purchase whereRepaymentDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Purchase whereUpdatedAt($value)
  *
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PurchaseProduct> $products
+ * @property-read int|null $products_count
+ *
  * @mixin \Eloquent
  */
 class Purchase extends Model

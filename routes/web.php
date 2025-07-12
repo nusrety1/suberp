@@ -3,6 +3,7 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SuppliesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -49,6 +50,14 @@ Route::get('add-purchase', function () {
     return Inertia::render('AddPurchase');
 })->middleware(['auth', 'verified'])->name('add-purchase');
 
+// Supplies
+Route::get('supplies', [SuppliesController::class, 'list'])
+    ->middleware(['auth', 'verified'])->name('supplies');
+
+Route::get('add-supply', function () {
+    return Inertia::render('AddSupply');
+})->middleware(['auth', 'verified'])->name('add-supply');
+
 // Post Apis
 Route::post('customer', [CustomerController::class, 'create'])
     ->name('create-customer');
@@ -58,6 +67,9 @@ Route::post('product', [ProductController::class, 'create'])
 
 Route::post('purchase/create', [PurchaseController::class, 'create'])
     ->name('create-purchase');
+
+Route::post('supply', [SuppliesController::class, 'create'])
+    ->name('create-supply');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
