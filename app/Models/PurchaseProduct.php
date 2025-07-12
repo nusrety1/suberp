@@ -31,6 +31,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseProduct whereQuantity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseProduct whereUpdatedAt($value)
  *
+ * @property int $id
+ *
  * @mixin \Eloquent
  */
 class PurchaseProduct extends Model

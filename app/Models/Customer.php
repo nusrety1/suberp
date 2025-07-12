@@ -28,6 +28,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereSurname($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereUpdatedAt($value)
  *
+ * @property string|null $full_name
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Customer whereFullName($value)
+ *
  * @mixin \Eloquent
  */
 class Customer extends Model
