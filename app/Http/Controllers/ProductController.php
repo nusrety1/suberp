@@ -42,4 +42,13 @@ class ProductController extends Controller
 
         return $oldProduct['price'] ?? null;
     }
+
+    public function listBasic()
+    {
+        $products = Product::query()->select(['id', 'name', 'price'])->get();
+
+        return response()->json([
+            'data' => $products,
+        ]);
+    }
 }
