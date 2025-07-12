@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property float $amount
  * @property float $quantity
  * @property string $unit
+ * @property string|null $description
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  *
@@ -25,12 +26,13 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Supply whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Supply whereUnit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Supply whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Supply whereDescription($value)
  *
  * @mixin \Eloquent
  */
 class Supply extends Model
 {
     protected $fillable = [
-        'name', 'slug', 'amount', 'quantity', 'unit',
+        'name', 'slug', 'amount', 'quantity', 'unit', 'description',
     ];
 }
