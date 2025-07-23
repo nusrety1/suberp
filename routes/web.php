@@ -10,7 +10,7 @@ use Inertia\Inertia;
 // todo: use prefix
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    return redirect()->intended(route('dashboard', absolute: false));
 })->name('home');
 
 Route::get('dashboard', function () {

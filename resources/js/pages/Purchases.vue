@@ -122,7 +122,7 @@ const closePurchaseDetail = () => {
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    Yeni Satın Alım
+                    Yeni Satış Yap
                 </button>
             </div>
 
@@ -268,7 +268,7 @@ const closePurchaseDetail = () => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 3H3m4 10v6a1 1 0 001 1h9a1 1 0 001-1v-6m-10 0V9a1 1 0 011-1h8a1 1 0 011 1v4.01M9 19v-6h6v6" />
                 </svg>
                 <h3 class="mt-2 text-sm font-medium text-gray-900">Henüz satın alım yok</h3>
-                <p class="mt-1 text-sm text-gray-500">İlk satın alımınızı kaydederek başlayın.</p>
+                <p class="mt-1 text-sm text-gray-500">İlk satışınızı kaydederek başlayın.</p>
                 <div class="mt-6">
                     <button
                         @click="$inertia.visit('/add-purchase')"
@@ -277,7 +277,7 @@ const closePurchaseDetail = () => {
                         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        Yeni Satın Alım
+                        Yeni Satış Yap
                     </button>
                 </div>
             </div>
