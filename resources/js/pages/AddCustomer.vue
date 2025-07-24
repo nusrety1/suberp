@@ -95,13 +95,12 @@ const submitForm = () => {
                         <!-- E-posta -->
                         <div class="space-y-2">
                             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                E-posta <span class="text-red-500">*</span>
+                                E-posta
                             </label>
                             <input
                                 id="email"
                                 v-model="form.email"
                                 type="email"
-                                required
                                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
                                 placeholder="ornek@email.com"
                                 :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.email }"
@@ -114,13 +113,12 @@ const submitForm = () => {
                         <!-- Telefon -->
                         <div class="space-y-2">
                             <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Telefon Numarası <span class="text-red-500">*</span>
+                                Telefon Numarası
                             </label>
                             <input
                                 id="phone"
                                 v-model="form.phone"
                                 type="tel"
-                                required
                                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
                                 placeholder="+90 (555) 123 45 67"
                                 :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.phone }"
@@ -134,13 +132,12 @@ const submitForm = () => {
                     <!-- Adres - Tam genişlik -->
                     <div class="mt-6 space-y-2">
                         <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Adres <span class="text-red-500">*</span>
+                            Adres
                         </label>
                         <textarea
                             id="address"
                             v-model="form.address"
                             rows="3"
-                            required
                             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200 resize-none"
                             placeholder="Müşterinin tam adresi..."
                             :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.address }"
