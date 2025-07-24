@@ -11,10 +11,12 @@ class CustomerController extends Controller
 {
     public function create(CustomerCreateRequest $request)
     {
+        $fullName = $request->name.' '.$request->surname;
+
         $isCreate = Customer::query()->create([
             'name' => $request->name,
             'surname' => $request->surname,
-            'full_name' => $request->name.$request->surname,
+            'full_name' => $fullName,
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->address,

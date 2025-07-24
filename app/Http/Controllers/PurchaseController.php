@@ -54,20 +54,24 @@ class PurchaseController extends Controller
         return response()->json([
             'purchase' => $purchase,
             'products' => $purchaseProducts,
-            'total_receivable_amount' => $this->calcTotalReceivableAmount($purchase[0]['id']),
+            'total_receivable_amount' => $this->calcTotalReceivableAmount($purchase[0]),
         ]);
     }
 
-    protected function calcTotalReceivableAmount(int $purchaseId)
+    protected function calcTotalReceivableAmount(array $purchase)
     {
+        $purchaseId = $purchase['id'];
+
         $purchaseProducts = PurchaseProduct::query()
             ->with(['product', 'purchase'])
             ->where('purchase_id', $purchaseId)
             ->get()
             ->toArray();
 
-        return array_reduce($purchaseProducts, function ($carry, $item) {
+        $subTotal = array_reduce($purchaseProducts, function ($carry, $item) {
             return $carry + ($item['quantity'] * $item['product']['price']);
         }, 0);
+
+        return $subTotal - $purchase['bargain_price'];
     }
 }

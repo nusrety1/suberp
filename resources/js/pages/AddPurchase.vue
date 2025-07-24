@@ -302,6 +302,30 @@ onMounted(() => {
                             </div>
                         </div>
 
+                        <!-- Pazarlık Fiyatı -->
+                        <div v-if="form.bargain_price > 0" class="mt-6 bg-gray-100 dark:bg-gray-900/20 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-medium text-black-900 dark:text-white-200">
+                                    Pazarlık İndirim Tutarı:
+                                </span>
+                                <span class="text-xl font-bold text-black-900 dark:text-white-200">
+                                    {{ form.bargain_price.toFixed(2) }}₺
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Ara Toplam -->
+                        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-medium text-blue-900 dark:text-blue-200">
+                                    Ara Toplam:
+                                </span>
+                                <span class="text-xl font-bold text-blue-900 dark:text-blue-200">
+                                    {{ totalAmount.toFixed(2) }}₺
+                                </span>
+                            </div>
+                        </div>
+
                         <!-- Genel Toplam -->
                         <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                             <div class="flex justify-between items-center">
@@ -309,7 +333,7 @@ onMounted(() => {
                                     Genel Toplam:
                                 </span>
                                 <span class="text-xl font-bold text-blue-900 dark:text-blue-200">
-                                    {{ totalAmount.toFixed(2) }}₺
+                                    {{ (totalAmount - form.bargain_price).toFixed(2) }}₺
                                 </span>
                             </div>
                         </div>

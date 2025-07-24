@@ -302,6 +302,13 @@ export default {
                             </div>
                         </div>
 
+                        <div class="bg-gray-100 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-medium text-black-600">Pazarlık İndirim Tutarı:</span>
+                                <span class="text-xl font-bold text-black-600">{{ formatCurrency(purchaseData.bargain_price) }}</span>
+                            </div>
+                        </div>
+
                         <div class="bg-green-50 rounded-lg p-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-lg font-medium text-gray-900">Güncel Tahsil Edilecek Tutar:</span>

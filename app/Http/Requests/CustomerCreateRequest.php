@@ -11,9 +11,9 @@ class CustomerCreateRequest extends FormRequest
         return [
             'name' => ['required', 'string'],
             'surname' => ['required', 'string'],
-            'email' => ['required', 'bail', 'email:filter,strict,rfc,spoof', 'max:255'],
+            'email' => ['nullable', 'bail', 'email:filter,strict,rfc,spoof', 'max:255'],
             'phone' => ['nullable', 'sometimes', 'string', 'max:50'],
-            'address' => ['required', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:255'],
         ];
     }
