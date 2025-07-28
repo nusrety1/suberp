@@ -135,7 +135,7 @@ const formatPrice = (price: number) => {
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <button
-                                    @click="$inertia.visit(`/products/${product.id}/edit`)"
+                                    @click="$inertia.visit(`/product/${product.id}/details`)"
                                     class="inline-flex items-center gap-1 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 text-sm font-medium rounded-md transition-colors duration-200"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

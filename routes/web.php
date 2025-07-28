@@ -28,6 +28,9 @@ Route::get('add-product', function () {
     return Inertia::render('AddProduct');
 })->middleware(['auth', 'verified'])->name('add-product');
 
+Route::get('product/{id}/details', [ProductController::class, 'details'])
+    ->middleware(['auth', 'verified'])->name('detail-product');
+
 // Customers
 Route::get('customers', [CustomerController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('customers');
@@ -64,6 +67,9 @@ Route::post('customer', [CustomerController::class, 'create'])
 
 Route::post('product', [ProductController::class, 'create'])
     ->name('create-product');
+
+Route::put('product', [ProductController::class, 'update'])
+    ->name('update-product');
 
 Route::post('purchase/create', [PurchaseController::class, 'create'])
     ->name('create-purchase');

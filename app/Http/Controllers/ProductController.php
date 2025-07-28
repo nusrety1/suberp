@@ -26,11 +26,43 @@ class ProductController extends Controller
         return $isCreate ? to_route('products') : false;
     }
 
+    public function update(ProductCreateRequest $request)
+    {
+        $slug = Str::slug($request->input('name'));
+        $oldPrice = $this->checkOldPrice($slug);
+
+        $data = [
+            'name' => $request->input('name'),
+            'slug' => $slug,
+            'price' => $request->input('price'),
+            'old_price' => $oldPrice,
+            'description' => $request->input('description'),
+        ];
+
+        $isUpdated = Product::query()
+            ->where('id', $request->input('id'))
+            ->update($data);
+
+        return $isUpdated ? to_route('products') : false;
+    }
+
     public function list()
     {
         $products = Product::query()->paginate(30);
 
         return Inertia::render('Products', ['products' => $products]);
+    }
+
+    public function details(int $id)
+    {
+        $product = Product::query()
+            ->findOrFail($id)
+            ->toArray();
+
+        return Inertia::render('AddProduct', [
+            'product' => $product,
+            'is_edit' => true,
+        ]);
     }
 
     private function checkOldPrice(string $slug)
