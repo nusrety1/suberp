@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class PartialPaymentObtainRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'purchase_id' => ['required', 'numeric'],
+            'paid_amount' => ['required', 'numeric'],
+        ];
+    }
+}
