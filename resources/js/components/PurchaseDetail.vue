@@ -23,6 +23,7 @@ interface Purchase {
     bargain_price: number
     description: string
     created_at: string
+    payment_method: string
 }
 
 interface ApiResponse {
@@ -145,7 +146,7 @@ export default {
             totalReceivableAmount,
             closeModal,
             formatDate,
-            formatCurrency
+            formatCurrency,
         }
     }
 }
@@ -256,6 +257,10 @@ export default {
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Oluşturulma Tarihi</label>
                                     <p class="mt-1 text-sm text-gray-900">{{ formatDate(purchaseData.created_at) }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Ödeme Yöntemi</label>
+                                    <p class="mt-1 text-sm text-gray-900">{{ purchaseData.payment_method }}</p>
                                 </div>
                             </div>
                         </div>

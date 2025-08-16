@@ -9,12 +9,18 @@ use Inertia\Inertia;
 
 class PurchaseController extends Controller
 {
+    public function addPurchase()
+    {
+        return Inertia::render('AddPurchase');
+    }
+
     public function create(PurchaseCreateRequest $request)
     {
         $purchase = Purchase::query()->create([
             'customer_id' => $request->input('customer_id'),
             'repayment_date' => $request->input('repayment_data'),
             'bargain_price' => $request->input('bargain_price'),
+            'payment_method' => $request->input('payment_method'),
         ]);
 
         array_map(function ($item) use ($purchase) {
