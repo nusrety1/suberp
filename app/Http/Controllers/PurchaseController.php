@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PartialPaymentObtainRequest;
 use App\Http\Requests\PurchaseCreateRequest;
 use App\Models\Purchase;
 use App\Models\PurchaseProduct;
@@ -63,6 +64,19 @@ class PurchaseController extends Controller
             'products' => $purchaseProducts,
             'total_receivable_amount' => $this->calcTotalReceivableAmount($purchase[0]),
         ]);
+    }
+
+    public function partialPaymentObtain(PartialPaymentObtainRequest $request)
+    {
+        Purchase::query()
+            ->where('id', $request->input('purchase_id'))
+            ->update([
+                'paid_amount' => $request->input('paid_amount'),
+            ]);
+
+        return [
+            'success' => true,
+        ];
     }
 
     protected function calcTotalReceivableAmount(array $purchase)

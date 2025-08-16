@@ -25,6 +25,7 @@ interface Purchase {
     description: string
     created_at: string
     payment_method: string
+    paid_amount: number
 }
 
 interface ApiResponse {
@@ -53,6 +54,14 @@ export default {
         const products = ref<Product[]>([])
         const totalReceivableAmount = ref<number>(0)
 
+        // Payment form state
+        const paymentForm = ref({
+            newPayment: 0,
+            loading: false,
+            success: false,
+            error: null as string | null
+        })
+
         // Computed properties
         const totalAmount = computed<number>(() => {
             return products.value.reduce((total: number, product: Product) => {
@@ -60,8 +69,27 @@ export default {
             }, 0)
         })
 
+        const currentPaidAmount = computed<number>(() => {
+            return purchaseData.value?.paid_amount || 0
+        })
+
+        const newTotalPaidAmount = computed<number>(() => {
+            return currentPaidAmount.value + (paymentForm.value.newPayment || 0)
+        })
+
+        const remainingAmount = computed<number>(() => {
+            return totalReceivableAmount.value - newTotalPaidAmount.value
+        })
+
         // Methods
         const closeModal = (): void => {
+            // Reset payment form when closing
+            paymentForm.value = {
+                newPayment: 0,
+                loading: false,
+                success: false,
+                error: null
+            }
             emit('close')
         }
 
@@ -80,10 +108,10 @@ export default {
                 console.log('API yanıtı:', response.data)
 
                 // API'den gelen veri yapısına göre ayarlama
-                if (response.data.purchase && response.data.purchase.length > 0) {
+                if (response.data.purchase && Array.isArray(response.data.purchase) && response.data.purchase.length > 0) {
                     purchaseData.value = response.data.purchase[0]
                 } else {
-                    purchaseData.value = response.data.purchase
+                    purchaseData.value = response.data.purchase as Purchase
                 }
 
                 products.value = response.data.products || []
@@ -98,6 +126,44 @@ export default {
                 console.error('API Error:', err)
             } finally {
                 loading.value = false
+            }
+        }
+
+        const submitPartialPayment = async (): Promise<void> => {
+            if (!purchaseData.value || !paymentForm.value.newPayment || paymentForm.value.newPayment <= 0) {
+                paymentForm.value.error = 'Geçerli bir ödeme tutarı giriniz.'
+                return
+            }
+
+            paymentForm.value.loading = true
+            paymentForm.value.error = null
+            paymentForm.value.success = false
+
+            try {
+                const response = await axios.post('/purchase/partial-payment', {
+                    purchase_id: purchaseData.value.id,
+                    paid_amount: newTotalPaidAmount.value
+                })
+
+                if (response.data.success) {
+                    // Update local data
+                    if (purchaseData.value) {
+                        purchaseData.value.paid_amount = newTotalPaidAmount.value
+                    }
+
+                    paymentForm.value.success = true
+                    paymentForm.value.newPayment = 0
+
+                    // Hide success message after 3 seconds
+                    setTimeout(() => {
+                        paymentForm.value.success = false
+                    }, 3000)
+                }
+            } catch (err: any) {
+                paymentForm.value.error = 'Ödeme kaydedilirken bir hata oluştu.'
+                console.error('Payment Error:', err)
+            } finally {
+                paymentForm.value.loading = false
             }
         }
 
@@ -145,9 +211,14 @@ export default {
             products,
             totalAmount,
             totalReceivableAmount,
+            paymentForm,
+            currentPaidAmount,
+            newTotalPaidAmount,
+            remainingAmount,
             closeModal,
             formatDate,
             formatCurrency,
+            submitPartialPayment,
         }
     }
 }
@@ -300,6 +371,99 @@ export default {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- Ödeme Bilgileri -->
+                        <div class="bg-yellow-50 rounded-lg p-4">
+                            <h4 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                                Ödeme Bilgileri ve Kısmi Ödeme
+                            </h4>
+
+                            <!-- Current Payment Info -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Şu Ana Kadar Ödenen</label>
+                                    <p class="mt-1 text-sm text-gray-900 font-semibold text-blue-600">
+                                        {{ formatCurrency(currentPaidAmount) }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Kalan Tutar</label>
+                                    <p class="mt-1 text-sm text-gray-900 font-semibold text-red-600">
+                                        {{ formatCurrency(totalReceivableAmount - currentPaidAmount) }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Payment Form -->
+                            <form @submit.prevent="submitPartialPayment" class="space-y-4">
+                                <div>
+                                    <label for="newPayment" class="block text-sm font-medium text-gray-700">
+                                        Yeni Ödeme Tutarı
+                                    </label>
+                                    <div class="mt-1 relative">
+                                        <input
+                                            id="newPayment"
+                                            v-model.number="paymentForm.newPayment"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            :max="totalReceivableAmount - currentPaidAmount"
+                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Ödeme tutarını giriniz"
+                                            :disabled="paymentForm.loading"
+                                        >
+                                    </div>
+                                </div>
+
+                                <!-- Payment Summary -->
+                                <div v-if="paymentForm.newPayment > 0" class="bg-gray-100 rounded-lg p-3">
+                                    <div class="text-sm space-y-1">
+                                        <div class="flex justify-between">
+                                            <span>Mevcut ödenen:</span>
+                                            <span class="font-medium">{{ formatCurrency(currentPaidAmount) }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Yeni ödeme:</span>
+                                            <span class="font-medium">{{ formatCurrency(paymentForm.newPayment) }}</span>
+                                        </div>
+                                        <div class="flex justify-between border-t pt-1 font-semibold">
+                                            <span>Toplam ödenecek:</span>
+                                            <span class="text-blue-600">{{ formatCurrency(newTotalPaidAmount) }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Yeni kalan tutar:</span>
+                                            <span class="text-red-600">{{ formatCurrency(remainingAmount) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Error Message -->
+                                <div v-if="paymentForm.error" class="text-red-600 text-sm">
+                                    {{ paymentForm.error }}
+                                </div>
+
+                                <!-- Success Message -->
+                                <div v-if="paymentForm.success" class="text-green-600 text-sm flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Ödeme başarıyla kaydedildi!
+                                </div>
+
+                                <!-- Submit Button -->
+                                <button
+                                    type="submit"
+                                    :disabled="paymentForm.loading || paymentForm.newPayment <= 0"
+                                    class="w-full flex justify-center items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <div v-if="paymentForm.loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    {{ paymentForm.loading ? 'Kaydediliyor...' : 'Ödemeyi Kaydet' }}
+                                </button>
+                            </form>
                         </div>
 
                         <!-- Toplam Tutarlar -->

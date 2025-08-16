@@ -73,6 +73,9 @@ Route::put('product', [ProductController::class, 'update'])
 Route::post('purchase/create', [PurchaseController::class, 'create'])
     ->name('create-purchase');
 
+Route::post('purchase/partial-payment', [PurchaseController::class, 'partialPaymentObtain'])
+    ->name('purchase-partial-payment');
+
 Route::post('supply', [SuppliesController::class, 'create'])
     ->name('create-supply');
 
