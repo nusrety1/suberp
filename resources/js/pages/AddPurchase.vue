@@ -82,14 +82,6 @@ const loadData = async () => {
             { value: 'basak_kart', label: 'Başak Kart', description: 'Başak Kart ile ödeme' },
             { value: 'cek', label: 'Çek', description: 'Çek ile ödeme' },
         ];
-    } catch (e) {
-        paymentMethods.value = [
-            { value: 'cash', label: 'Nakit', description: 'Peşin nakit ödeme' },
-            { value: 'kredi_kartı', label: 'Kredi Kartı', description: 'Kredi kartı ile ödeme' },
-            { value: 'imece_kart', label: 'İmece Kart', description: 'İmece Kartı ile ödeme' },
-            { value: 'basak_kart', label: 'Başak Kart', description: 'Başak Kart ile ödeme' },
-            { value: 'cek', label: 'Çek', description: 'Çek ile ödeme' },
-        ];
     } finally {
         loading.value = false;
     }
