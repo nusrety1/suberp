@@ -54,6 +54,7 @@ class PurchaseController extends Controller
             ->toArray();
 
         $purchaseProducts = PurchaseProduct::query()
+            ->with('product')
             ->where('purchase_id', $id)
             ->get();
 

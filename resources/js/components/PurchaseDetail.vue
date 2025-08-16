@@ -13,6 +13,7 @@ interface Product {
     id: number
     product_id: number
     quantity: number
+    product: object
     purchase_time_unit_price: number
 }
 
@@ -282,6 +283,7 @@ export default {
                                         <th class="text-left py-2 px-3 text-sm font-medium text-gray-700">
                                             Birim Fiyat (Satış Yapıldığı Tarihte)
                                         </th>
+                                        <th class="text-left py-2 px-3 text-sm font-medium text-gray-700">Ürün Güncel Fiyatı</th>
                                         <th class="text-left py-2 px-3 text-sm font-medium text-gray-700">Toplam</th>
                                     </tr>
                                     </thead>
@@ -290,6 +292,7 @@ export default {
                                         <td class="py-2 px-3 text-sm text-gray-900">{{ product.product_id }}</td>
                                         <td class="py-2 px-3 text-sm text-gray-900">{{ product.quantity }}</td>
                                         <td class="py-2 px-3 text-sm text-gray-900">{{ formatCurrency(product.purchase_time_unit_price) }}</td>
+                                        <td class="py-2 px-3 text-sm text-gray-900">{{ product.product.price }}</td>
                                         <td class="py-2 px-3 text-sm text-gray-900 font-semibold">
                                             {{ formatCurrency(product.quantity * product.purchase_time_unit_price) }}
                                         </td>
