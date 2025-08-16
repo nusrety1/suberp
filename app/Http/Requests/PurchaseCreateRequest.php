@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\PaymentMethodEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class PurchaseCreateRequest extends FormRequest
 {
@@ -16,6 +18,7 @@ class PurchaseCreateRequest extends FormRequest
             'products.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'products.*.quantity' => ['required', 'integer', 'min:1'],
             'products.*.purchase_time_unit_price' => ['required', 'numeric'],
+            'payment_method' => ['nullable', new Enum(PaymentMethodEnum::class)],
         ];
     }
 }

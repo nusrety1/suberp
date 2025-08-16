@@ -21,6 +21,12 @@ interface ProductItem {
     purchase_time_unit_price: number;
 }
 
+interface PaymentMethod {
+    value: string;
+    label: string;
+    description?: string;
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Satışlar',
@@ -34,12 +40,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const customers = ref<Customer[]>([]);
 const products = ref<Product[]>([]);
+const paymentMethods = ref<PaymentMethod[]>([]);
 const loading = ref(false);
 
 const form = useForm({
     customer_id: '',
     repayment_data: '',
     bargain_price: '',
+    payment_method: '',
     products: [] as ProductItem[]
 });
 
@@ -48,6 +56,12 @@ const totalAmount = computed(() => {
     return form.products.reduce((total, item) => {
         return total + (item.quantity * item.purchase_time_unit_price);
     }, 0);
+});
+
+// Genel toplam (pazarlık fiyatı düşülmüş)
+const finalTotal = computed(() => {
+    const bargainPrice = parseFloat(form.bargain_price) || 0;
+    return Math.max(0, totalAmount.value - bargainPrice);
 });
 
 const loadData = async () => {
@@ -60,8 +74,22 @@ const loadData = async () => {
         const productsResponse = await fetch('/products/basic-list');
         const productData = await productsResponse.json()
         products.value = productData.data;
-    } catch (error) {
-        console.error('Veri yükleme hatası:', error);
+
+        paymentMethods.value = [
+            { value: 'cash', label: 'Nakit', description: 'Peşin nakit ödeme' },
+            { value: 'kredi_kartı', label: 'Kredi Kartı', description: 'Kredi kartı ile ödeme' },
+            { value: 'imece_kart', label: 'İmece Kart', description: 'İmece Kartı ile ödeme' },
+            { value: 'basak_kart', label: 'Başak Kart', description: 'Başak Kart ile ödeme' },
+            { value: 'cek', label: 'Çek', description: 'Çek ile ödeme' },
+        ];
+    } catch (e) {
+        paymentMethods.value = [
+            { value: 'cash', label: 'Nakit', description: 'Peşin nakit ödeme' },
+            { value: 'kredi_kartı', label: 'Kredi Kartı', description: 'Kredi kartı ile ödeme' },
+            { value: 'imece_kart', label: 'İmece Kart', description: 'İmece Kartı ile ödeme' },
+            { value: 'basak_kart', label: 'Başak Kart', description: 'Başak Kart ile ödeme' },
+            { value: 'cek', label: 'Çek', description: 'Çek ile ödeme' },
+        ];
     } finally {
         loading.value = false;
     }
@@ -176,10 +204,33 @@ onMounted(() => {
                             </p>
                         </div>
 
+                        <!-- Ödeme Yöntemi -->
+                        <div class="space-y-2">
+                            <label for="payment_method" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Ödeme Yöntemi <span class="text-red-500">*</span>
+                            </label>
+                            <select
+                                id="payment_method"
+                                v-model="form.payment_method"
+                                required
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
+                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.payment_method }"
+                            >
+                                <option value="">Ödeme Yöntemi Seçin</option>
+                                <option v-for="method in paymentMethods" :key="method.value" :value="method.value">
+                                    {{ method.label }}
+                                    <span v-if="method.description" class="text-gray-500"> - {{ method.description }}</span>
+                                </option>
+                            </select>
+                            <p v-if="form.errors.payment_method" class="text-sm text-red-600 dark:text-red-400">
+                                {{ form.errors.payment_method }}
+                            </p>
+                        </div>
+
                         <!-- Pazarlık Fiyatı -->
-                        <div class="space-y-2 md:col-span-2">
+                        <div class="space-y-2">
                             <label for="bargain_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Pazarlık Fiyatı
+                                Pazarlık İndirimi (₺)
                             </label>
                             <input
                                 id="bargain_price"
@@ -194,6 +245,29 @@ onMounted(() => {
                             <p v-if="form.errors.bargain_price" class="text-sm text-red-600 dark:text-red-400">
                                 {{ form.errors.bargain_price }}
                             </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                Toplam tutardan düşülecek indirim miktarı
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Seçilen Ödeme Yöntemi Bilgi Kutusu -->
+                    <div v-if="form.payment_method" class="mb-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm8 0a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1h-6a1 1 0 01-1-1v-6z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                    Seçilen Ödeme Yöntemi
+                                </h3>
+                                <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                                    <strong>{{ paymentMethods.find(m => m.value === form.payment_method)?.label }}</strong>
+                                    <span v-if="paymentMethods.find(m => m.value === form.payment_method)?.description">
+                                        - {{ paymentMethods.find(m => m.value === form.payment_method)?.description }}
+                                    </span>
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -302,39 +376,42 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <!-- Pazarlık Fiyatı -->
-                        <div v-if="form.bargain_price > 0" class="mt-6 bg-gray-100 dark:bg-gray-900/20 rounded-lg p-4">
-                            <div class="flex justify-between items-center">
-                                <span class="text-lg font-medium text-black-900 dark:text-white-200">
-                                    Pazarlık İndirim Tutarı:
-                                </span>
-                                <span class="text-xl font-bold text-black-900 dark:text-white-200">
-                                    {{ form.bargain_price.toFixed(2) }}₺
-                                </span>
-                            </div>
-                        </div>
-
                         <!-- Ara Toplam -->
-                        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <div class="mt-6 bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4">
                             <div class="flex justify-between items-center">
-                                <span class="text-lg font-medium text-blue-900 dark:text-blue-200">
+                                <span class="text-lg font-medium text-gray-900 dark:text-gray-200">
                                     Ara Toplam:
                                 </span>
-                                <span class="text-xl font-bold text-blue-900 dark:text-blue-200">
+                                <span class="text-xl font-bold text-gray-900 dark:text-gray-200">
                                     {{ totalAmount.toFixed(2) }}₺
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Genel Toplam -->
-                        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <!-- Pazarlık İndirimi -->
+                        <div v-if="form.bargain_price > 0" class="mt-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                             <div class="flex justify-between items-center">
-                                <span class="text-lg font-medium text-blue-900 dark:text-blue-200">
-                                    Genel Toplam:
+                                <span class="text-lg font-medium text-orange-900 dark:text-orange-200">
+                                    Pazarlık İndirimi:
                                 </span>
+                                <span class="text-xl font-bold text-orange-900 dark:text-orange-200">
+                                    -{{ parseFloat(form.bargain_price).toFixed(2) }}₺
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Genel Toplam -->
+                        <div class="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border-2 border-blue-200 dark:border-blue-800">
+                            <div class="flex justify-between items-center">
                                 <span class="text-xl font-bold text-blue-900 dark:text-blue-200">
-                                    {{ (totalAmount - form.bargain_price).toFixed(2) }}₺
+                                    Ödenecek Tutar:
                                 </span>
+                                <span class="text-2xl font-bold text-blue-900 dark:text-blue-200">
+                                    {{ finalTotal.toFixed(2) }}₺
+                                </span>
+                            </div>
+                            <div v-if="form.payment_method" class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                                {{ paymentMethods.find(m => m.value === form.payment_method)?.label }} ile ödenecek
                             </div>
                         </div>
                     </div>
@@ -376,7 +453,8 @@ onMounted(() => {
                         <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
                             • Zorunlu alanlar (*) işaretli olanlardır.<br>
                             • Ürün seçildiğinde birim fiyat otomatik olarak doldurulur.<br>
-                            • Pazarlık fiyatı isteğe bağlıdır, boş bırakılabilir.
+                            • Pazarlık indirimi toplam tutardan düşülür.<br>
+                            • Ödeme yöntemi seçimi zorunludur.
                         </p>
                     </div>
                 </div>

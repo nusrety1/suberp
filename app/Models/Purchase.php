@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $customer_id
  * @property string $repayment_date
  * @property float $bargain_price
+ * @property string $payment_method
  * @property-read Customer $customer
  * @property-read PurchaseProduct $purchaseProducts
  *
@@ -42,7 +43,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Purchase extends Model
 {
     protected $fillable = [
-        'customer_id', 'repayment_date', 'bargain_price',
+        'customer_id', 'repayment_date', 'bargain_price', 'payment_method',
     ];
 
     public function customer(): BelongsTo

@@ -49,9 +49,8 @@ Route::get('purchases', [PurchaseController::class, 'list'])
 Route::get('purchases/{id}/details', [PurchaseController::class, 'details'])
     ->middleware(['auth', 'verified'])->name('purchase-details');
 
-Route::get('add-purchase', function () {
-    return Inertia::render('AddPurchase');
-})->middleware(['auth', 'verified'])->name('add-purchase');
+Route::get('add-purchase', [PurchaseController::class, 'addPurchase'])
+    ->middleware(['auth', 'verified'])->name('add-purchase');
 
 // Supplies
 Route::get('supplies', [SuppliesController::class, 'list'])
