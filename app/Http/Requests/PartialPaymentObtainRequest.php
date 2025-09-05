@@ -10,7 +10,9 @@ class PartialPaymentObtainRequest extends FormRequest
     {
         return [
             'purchase_id' => ['required', 'numeric'],
-            'paid_amount' => ['required', 'numeric'],
+            'product_id' => ['required', 'numeric'],
+            'paid_amount' => ['required', 'numeric', 'min:0'],
+            'payment_amount' => ['required', 'numeric', 'min:0'],
         ];
     }
 }

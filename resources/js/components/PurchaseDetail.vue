@@ -52,11 +52,13 @@ export default {
         const error = ref<string | null>(null)
         const purchaseData = ref<Purchase | null>(null)
         const products = ref<Product[]>([])
+        const payments = ref<any[]>([])
         const totalReceivableAmount = ref<number>(0)
 
         // Payment form state
         const paymentForm = ref({
             newPayment: 0,
+            selectedProductId: null as number | null,
             loading: false,
             success: false,
             error: null as string | null
@@ -86,6 +88,7 @@ export default {
             // Reset payment form when closing
             paymentForm.value = {
                 newPayment: 0,
+                selectedProductId: null,
                 loading: false,
                 success: false,
                 error: null
@@ -115,10 +118,12 @@ export default {
                 }
 
                 products.value = response.data.products || []
+                payments.value = response.data.payments || []
                 totalReceivableAmount.value = response.data.total_receivable_amount || 0
 
                 console.log('purchaseData:', purchaseData.value)
                 console.log('products:', products.value)
+                console.log('payments:', payments.value)
                 console.log('totalReceivableAmount:', totalReceivableAmount.value)
 
             } catch (err: any) {
@@ -135,14 +140,22 @@ export default {
                 return
             }
 
+            if (!paymentForm.value.selectedProductId) {
+                paymentForm.value.error = 'Lütfen bir ürün seçiniz.'
+                return
+            }
+
             paymentForm.value.loading = true
             paymentForm.value.error = null
             paymentForm.value.success = false
 
             try {
+                console.log(paymentForm.value.selectedProductId);
                 const response = await axios.post('/purchase/partial-payment', {
                     purchase_id: purchaseData.value.id,
-                    paid_amount: newTotalPaidAmount.value
+                    product_id: paymentForm.value.selectedProductId,
+                    paid_amount: newTotalPaidAmount.value,
+                    payment_amount: paymentForm.value.newPayment
                 })
 
                 if (response.data.success) {
@@ -153,6 +166,7 @@ export default {
 
                     paymentForm.value.success = true
                     paymentForm.value.newPayment = 0
+                    paymentForm.value.selectedProductId = null
 
                     // Hide success message after 3 seconds
                     setTimeout(() => {
@@ -209,6 +223,7 @@ export default {
             error,
             purchaseData,
             products,
+            payments,
             totalAmount,
             totalReceivableAmount,
             paymentForm,
@@ -400,6 +415,30 @@ export default {
 
                             <!-- Payment Form -->
                             <form @submit.prevent="submitPartialPayment" class="space-y-4">
+                                <!-- Product Selection -->
+                                <div>
+                                    <label for="selectedProduct" class="block text-sm font-medium text-gray-700">
+                                        Ürün Seçimi
+                                    </label>
+                                    <div class="mt-1">
+                                        <select
+                                            id="selectedProduct"
+                                            v-model.number="paymentForm.selectedProductId"
+                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            :disabled="paymentForm.loading"
+                                        >
+                                            <option value="">Ürün seçiniz...</option>
+                                            <option
+                                                v-for="product in products"
+                                                :key="product.id"
+                                                :value="product.product_id"
+                                            >
+                                                {{ product.product.name }} ({{ product.quantity }} adet)
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <label for="newPayment" class="block text-sm font-medium text-gray-700">
                                         Yeni Ödeme Tutarı
@@ -464,6 +503,53 @@ export default {
                                     {{ paymentForm.loading ? 'Kaydediliyor...' : 'Ödemeyi Kaydet' }}
                                 </button>
                             </form>
+
+                            <!-- Payment Records Table -->
+                            <div v-if="payments && payments.length > 0" class="mt-6">
+                                <h5 class="text-md font-medium text-gray-900 mb-3">Ödeme Kayıtları</h5>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Satış ID
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Ürün ID
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Ürün Adı
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Ödenen Tutar
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Ödeme Tarihi
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="payment in payments" :key="payment.id" class="hover:bg-gray-50">
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ payment.purchase_id }}
+                                                </td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ payment.product_id }}
+                                                </td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ payment.product?.name || 'N/A' }}
+                                                </td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                                    {{ formatCurrency(payment.paid_amount) }}
+                                                </td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ formatDate(payment.created_at) }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Toplam Tutarlar -->
