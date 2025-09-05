@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PartialPaymentObtainRequest;
 use App\Http\Requests\PurchaseCreateRequest;
+use App\Models\Payment;
 use App\Models\Purchase;
 use App\Models\PurchaseProduct;
 use Inertia\Inertia;
@@ -59,9 +60,16 @@ class PurchaseController extends Controller
             ->where('purchase_id', $id)
             ->get();
 
+        $payments = Payment::query()
+            ->with('product')
+            ->where('purchase_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return response()->json([
             'purchase' => $purchase,
             'products' => $purchaseProducts,
+            'payments' => $payments,
             'total_receivable_amount' => $this->calcTotalReceivableAmount($purchase[0]),
         ]);
     }
@@ -73,6 +81,12 @@ class PurchaseController extends Controller
             ->update([
                 'paid_amount' => $request->input('paid_amount'),
             ]);
+
+        Payment::query()->create([
+            'purchase_id' => $request->input('purchase_id'),
+            'product_id' => $request->input('product_id'),
+            'paid_amount' => $request->input('payment_amount'),
+        ]);
 
         return [
             'success' => true,
