@@ -365,6 +365,7 @@ export default {
                                     <thead>
                                     <tr class="border-b border-gray-200">
                                         <th class="text-left py-2 px-3 text-sm font-medium text-gray-700">Ürün ID</th>
+                                        <th class="text-left py-2 px-3 text-sm font-medium text-gray-700">Ürün Adı</th>
                                         <th class="text-left py-2 px-3 text-sm font-medium text-gray-700">Miktar</th>
                                         <th class="text-left py-2 px-3 text-sm font-medium text-gray-700">
                                             Birim Fiyat (Satış Yapıldığı Tarihte)
@@ -376,9 +377,10 @@ export default {
                                     <tbody>
                                     <tr v-for="product in products" :key="product.id" class="border-b border-gray-100">
                                         <td class="py-2 px-3 text-sm text-gray-900">{{ product.product_id }}</td>
+                                        <td class="py-2 px-3 text-sm text-gray-900 font-medium">{{ product.product.name }}</td>
                                         <td class="py-2 px-3 text-sm text-gray-900">{{ product.quantity }}</td>
                                         <td class="py-2 px-3 text-sm text-gray-900">{{ formatCurrency(product.purchase_time_unit_price) }}</td>
-                                        <td class="py-2 px-3 text-sm text-gray-900">{{ product.product.price }}</td>
+                                        <td class="py-2 px-3 text-sm text-gray-900">{{ formatCurrency(product.product.price) }}</td>
                                         <td class="py-2 px-3 text-sm text-gray-900 font-semibold">
                                             {{ formatCurrency(product.quantity * product.purchase_time_unit_price) }}
                                         </td>
