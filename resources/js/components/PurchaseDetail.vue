@@ -80,6 +80,10 @@ export default {
         })
 
         const remainingAmount = computed<number>(() => {
+            return totalReceivableAmount.value - currentPaidAmount.value
+        })
+
+        const newRemainingAmount = computed<number>(() => {
             return totalReceivableAmount.value - newTotalPaidAmount.value
         })
 
@@ -230,6 +234,7 @@ export default {
             currentPaidAmount,
             newTotalPaidAmount,
             remainingAmount,
+            newRemainingAmount,
             closeModal,
             formatDate,
             formatCurrency,
@@ -400,17 +405,23 @@ export default {
                             </h4>
 
                             <!-- Current Payment Info -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Şu Ana Kadar Ödenen</label>
+                                    <label class="block text-sm font-medium text-gray-700">Güncel Tahsil Edilecek Tutar (Ürünlerin Güncel Fiyatlarıyla)</label>
+                                    <p class="mt-1 text-sm text-gray-900 font-semibold text-green-600">
+                                        {{ formatCurrency(totalReceivableAmount) }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Toplam Ödenen Tutar</label>
                                     <p class="mt-1 text-sm text-gray-900 font-semibold text-blue-600">
                                         {{ formatCurrency(currentPaidAmount) }}
                                     </p>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Kalan Tutar</label>
+                                    <label class="block text-sm font-medium text-gray-700">Kalan Ödenecek Tutar</label>
                                     <p class="mt-1 text-sm text-gray-900 font-semibold text-red-600">
-                                        {{ formatCurrency(totalReceivableAmount - currentPaidAmount) }}
+                                        {{ formatCurrency(remainingAmount) }}
                                     </p>
                                 </div>
                             </div>
@@ -464,6 +475,10 @@ export default {
                                 <div v-if="paymentForm.newPayment > 0" class="bg-gray-100 rounded-lg p-3">
                                     <div class="text-sm space-y-1">
                                         <div class="flex justify-between">
+                                            <span>Güncel tahsil edilecek tutar:</span>
+                                            <span class="font-medium text-green-600">{{ formatCurrency(totalReceivableAmount) }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
                                             <span>Mevcut ödenen:</span>
                                             <span class="font-medium">{{ formatCurrency(currentPaidAmount) }}</span>
                                         </div>
@@ -472,12 +487,12 @@ export default {
                                             <span class="font-medium">{{ formatCurrency(paymentForm.newPayment) }}</span>
                                         </div>
                                         <div class="flex justify-between border-t pt-1 font-semibold">
-                                            <span>Toplam ödenecek:</span>
+                                            <span>Yeni toplam ödenecek:</span>
                                             <span class="text-blue-600">{{ formatCurrency(newTotalPaidAmount) }}</span>
                                         </div>
                                         <div class="flex justify-between">
-                                            <span>Yeni kalan tutar:</span>
-                                            <span class="text-red-600">{{ formatCurrency(remainingAmount) }}</span>
+                                            <span>Yeni kalan ödenecek tutar:</span>
+                                            <span class="text-red-600">{{ formatCurrency(newRemainingAmount) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -557,23 +572,41 @@ export default {
                         <!-- Toplam Tutarlar -->
                         <div class="bg-blue-50 rounded-lg p-4">
                             <div class="flex justify-between items-center">
-                                <span class="text-lg font-medium text-gray-900">Satış Yapıldığı Zaman Toplam Tutar:</span>
+                                <span class="text-lg font-medium text-gray-900">Satış Yapıldığı Zaman Toplam Tutar (Eski Fiyatlarla):</span>
                                 <span class="text-xl font-bold text-blue-600">{{ formatCurrency(totalAmount) }}</span>
                             </div>
                         </div>
 
                         <div class="bg-gray-100 rounded-lg p-4">
                             <div class="flex justify-between items-center">
-                                <span class="text-lg font-medium text-black-600">Pazarlık İndirim Tutarı:</span>
-                                <span class="text-xl font-bold text-black-600">{{ formatCurrency(purchaseData.bargain_price) }}</span>
+                                <span class="text-lg font-medium text-gray-900">Pazarlık İndirim Tutarı:</span>
+                                <span class="text-xl font-bold text-gray-600">{{ formatCurrency(purchaseData.bargain_price) }}</span>
                             </div>
                         </div>
 
                         <div class="bg-green-50 rounded-lg p-4">
                             <div class="flex justify-between items-center">
-                                <span class="text-lg font-medium text-gray-900">Güncel Tahsil Edilecek Tutar:</span>
+                                <span class="text-lg font-medium text-gray-900">Tahsil Edilecek Toplam Tutar (Ürünlerin Güncel Fiyatlarıyla):</span>
                                 <span class="text-xl font-bold text-green-600">
                                     {{ formatCurrency(totalReceivableAmount) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-medium text-gray-900">Toplam Ödenen Tutar:</span>
+                                <span class="text-xl font-bold text-blue-600">
+                                    {{ formatCurrency(currentPaidAmount) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bg-red-50 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-medium text-gray-900">Kalan Ödenecek Tutar:</span>
+                                <span class="text-xl font-bold text-red-600">
+                                    {{ formatCurrency(remainingAmount) }}
                                 </span>
                             </div>
                         </div>
