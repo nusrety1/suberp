@@ -283,7 +283,6 @@ const closePurchaseDetail = () => {
             </div>
         </div>
 
-        <!-- Purchase Detail Modal -->
         <PurchaseDetail
             v-if="selectedPurchase"
             :purchase-id="selectedPurchase.id"

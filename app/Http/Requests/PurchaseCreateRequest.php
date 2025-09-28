@@ -12,13 +12,14 @@ class PurchaseCreateRequest extends FormRequest
     {
         return [
             'customer_id' => ['required', 'integer'],
-            'repayment_data' => ['required', 'date'],
+            'repayment_date' => ['required', 'date'],
             'bargain_price' => ['nullable', 'numeric'],
             'products' => ['required', 'array'],
             'products.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'products.*.quantity' => ['required', 'integer', 'min:1'],
             'products.*.purchase_time_unit_price' => ['required', 'numeric'],
             'payment_method' => ['nullable', new Enum(PaymentMethodEnum::class)],
+            'description' => ['nullable', 'string'],
         ];
     }
 }

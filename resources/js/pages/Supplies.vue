@@ -1,16 +1,29 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import SupplyPaymentModal from '@/components/SupplyPaymentModal.vue';
 import { Head } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import axios from 'axios';
 import type { BreadcrumbItem } from '@/types';
+
+interface Customer {
+    id: number;
+    name: string;
+    surname: string;
+    full_name: string;
+}
 
 interface Supply {
     id: number;
     name: string;
     slug: string;
     amount: number;
+    paid_amount: number;
     quantity: number;
     unit: string;
     description: string;
+    customer_id: number | null;
+    customer: Customer | null;
     created_at: string;
     updated_at: string;
 }
@@ -56,6 +69,36 @@ const formatAmount = (amount: number) => {
 const formatQuantity = (quantity: number, unit: string) => {
     return `${quantity} ${unit}`;
 };
+
+// Payment modal state
+const isPaymentModalOpen = ref(false);
+const selectedSupply = ref<Supply | null>(null);
+const customerTotalDebt = ref<number>(0);
+
+// Payment modal functions
+const openPaymentModal = async (supply: Supply) => {
+    selectedSupply.value = supply;
+    isPaymentModalOpen.value = true;
+
+    // Fetch customer total debt if supply has a customer
+    if (supply.customer_id) {
+        try {
+            const response = await axios.get(`/customer/${supply.customer_id}/supply-debt`);
+            customerTotalDebt.value = response.data.total_debt;
+        } catch (error) {
+            console.error('Error fetching customer debt:', error);
+            customerTotalDebt.value = 0;
+        }
+    } else {
+        customerTotalDebt.value = 0;
+    }
+};
+
+const closePaymentModal = () => {
+    isPaymentModalOpen.value = false;
+    selectedSupply.value = null;
+    customerTotalDebt.value = 0;
+};
 </script>
 
 <template>
@@ -88,16 +131,28 @@ const formatQuantity = (quantity: number, unit: string) => {
                                 Ürün
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Müşteri
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Miktar
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Toplam Değer
+                                Toplam Malzeme Değeri
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Toplam Ödenen Tutar
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Açıklama
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Kayıt Tarihi
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Kalan Borç
+                            </th>
+                            <th>
+                                <!-- // -->
                             </th>
                         </tr>
                         </thead>
@@ -123,6 +178,14 @@ const formatQuantity = (quantity: number, unit: string) => {
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
+                                <div v-if="supply.customer" class="text-sm text-gray-900">
+                                    {{ supply.customer.full_name }}
+                                </div>
+                                <div v-else class="text-sm text-gray-500 italic">
+                                    Müşteri atanmamış
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">
                                     {{ formatQuantity(supply.quantity, supply.unit) }}
                                 </div>
@@ -131,10 +194,30 @@ const formatQuantity = (quantity: number, unit: string) => {
                                 {{ formatAmount(supply.amount) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ formatAmount(supply.paid_amount) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ supply.description ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ formatDate(supply.created_at) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" :class="(supply.amount - supply.paid_amount) > 0 ? 'text-red-600' : 'text-green-600'">
+                                {{ formatAmount(supply.amount - supply.paid_amount) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button
+                                        @click="openPaymentModal(supply)"
+                                        :disabled="(supply.amount - supply.paid_amount) <= 0"
+                                        class="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 font-medium rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                        </svg>
+                                        Ödeme
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
@@ -218,5 +301,13 @@ const formatQuantity = (quantity: number, unit: string) => {
                 </div>
             </div>
         </div>
+
+        <!-- Supply Payment Modal -->
+        <SupplyPaymentModal
+            :supply="selectedSupply"
+            :is-open="isPaymentModalOpen"
+            :customer-total-debt="customerTotalDebt"
+            @close="closePaymentModal"
+        />
     </AppLayout>
 </template>

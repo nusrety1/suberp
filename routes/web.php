@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SuppliesController;
@@ -45,6 +46,9 @@ Route::get('add-customer', function () {
 Route::get('customer/{id}/details', [CustomerController::class, 'details'])
     ->middleware(['auth', 'verified'])->name('customer-details');
 
+Route::get('customer/{id}/payment-history', [CustomerController::class, 'paymentHistory'])
+    ->middleware(['auth', 'verified'])->name('customer-payment-history');
+
 // Purchases
 Route::get('purchases', [PurchaseController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('purchases');
@@ -59,9 +63,11 @@ Route::get('add-purchase', [PurchaseController::class, 'addPurchase'])
 Route::get('supplies', [SuppliesController::class, 'list'])
     ->middleware(['auth', 'verified'])->name('supplies');
 
-Route::get('add-supply', function () {
-    return Inertia::render('AddSupply');
-})->middleware(['auth', 'verified'])->name('add-supply');
+Route::get('add-supply', [SuppliesController::class, 'addSupply'])
+    ->middleware(['auth', 'verified'])->name('add-supply');
+
+Route::get('supplies/{id}/detils', [SuppliesController::class, 'detailSupply'])
+    ->middleware(['auth', 'verified'])->name('detail-supply');
 
 // Post Apis
 Route::post('customer', [CustomerController::class, 'create'])
@@ -81,6 +87,24 @@ Route::post('purchase/partial-payment', [PurchaseController::class, 'partialPaym
 
 Route::post('supply', [SuppliesController::class, 'create'])
     ->name('create-supply');
+
+// Payments
+Route::get('payments', [PaymentController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('payments');
+
+Route::post('payments', [PaymentController::class, 'store'])
+    ->middleware(['auth', 'verified'])->name('create-payment');
+
+Route::get('payments/{id}', [PaymentController::class, 'show'])
+    ->middleware(['auth', 'verified'])->name('payment-details');
+
+Route::delete('payments/{id}', [PaymentController::class, 'destroy'])
+    ->middleware(['auth', 'verified'])->name('delete-payment');
+
+Route::post('supply_paid', [SuppliesController::class, 'supplyPayment'])
+    ->middleware(['auth', 'verified'])->name('supply-paid');
+Route::get('customer/{id}/supply-debt', [SuppliesController::class, 'getCustomerTotalDebt'])
+    ->middleware(['auth', 'verified'])->name('customer-supply-debt');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

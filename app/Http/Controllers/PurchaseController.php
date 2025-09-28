@@ -20,9 +20,10 @@ class PurchaseController extends Controller
     {
         $purchase = Purchase::query()->create([
             'customer_id' => $request->input('customer_id'),
-            'repayment_date' => $request->input('repayment_data'),
+            'repayment_date' => $request->input('repayment_date'),
             'bargain_price' => $request->input('bargain_price'),
             'payment_method' => $request->input('payment_method'),
+            'description' => $request->input('description'),
         ]);
 
         array_map(function ($item) use ($purchase) {
@@ -41,7 +42,7 @@ class PurchaseController extends Controller
     {
         $purchases = Purchase::query()
             ->with('customer')
-            ->orderBy('repayment_date', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate(30);
 
         return Inertia::render('Purchases', ['purchases' => $purchases]);
@@ -76,21 +77,46 @@ class PurchaseController extends Controller
 
     public function partialPaymentObtain(PartialPaymentObtainRequest $request)
     {
-        Purchase::query()
-            ->where('id', $request->input('purchase_id'))
-            ->update([
-                'paid_amount' => $request->input('paid_amount'),
-            ]);
+        // Önce satıştaki toplam ürün miktarını kontrol et
+        $purchase = Purchase::findOrFail($request->input('purchase_id'));
+        $purchaseProduct = PurchaseProduct::where('purchase_id', $request->input('purchase_id'))
+            ->where('product_id', $request->input('product_id'))
+            ->first();
 
-        Payment::query()->create([
+        if (! $purchaseProduct) {
+            return response()->json(['error' => 'Ürün bu satışta bulunamadı'], 404);
+        }
+
+        // Bu ürün için yapılan toplam ödeme miktarını hesapla
+        $totalPaidQuantity = Payment::where('purchase_id', $request->input('purchase_id'))
+            ->where('product_id', $request->input('product_id'))
+            ->sum('product_quantity');
+
+        $remainingQuantity = $purchaseProduct->quantity - $totalPaidQuantity;
+
+        // Eğer ödeme miktarı kalan miktardan fazlaysa hata ver
+        if ($request->input('product_quantity') > $remainingQuantity) {
+            return response()->json([
+                'error' => "Bu ürün için en fazla {$remainingQuantity} adet ödeme yapabilirsiniz",
+            ], 400);
+        }
+
+        // Ödeme kaydını oluştur
+        Payment::create([
             'purchase_id' => $request->input('purchase_id'),
             'product_id' => $request->input('product_id'),
             'paid_amount' => $request->input('payment_amount'),
+            'description' => $request->input('description'),
+            'product_quantity' => $request->input('product_quantity'),
         ]);
 
-        return [
-            'success' => true,
-        ];
+        // Satıştaki toplam ödenen miktarı güncelle
+        $totalPaidAmount = Payment::where('purchase_id', $request->input('purchase_id'))
+            ->sum('paid_amount');
+
+        $purchase->update(['paid_amount' => $totalPaidAmount]);
+
+        return response()->json(['success' => true]);
     }
 
     protected function calcTotalReceivableAmount(array $purchase)

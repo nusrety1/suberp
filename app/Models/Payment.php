@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $purchase_id
  * @property int $product_id
  * @property float|null $paid_amount
+ * @property string|null $description
+ * @property int|null $product_quantity
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read Purchase $purchase
@@ -33,6 +35,8 @@ class Payment extends Model
         'purchase_id',
         'product_id',
         'paid_amount',
+        'description',
+        'product_quantity',
     ];
 
     public function purchase(): BelongsTo

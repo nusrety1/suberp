@@ -20,7 +20,7 @@ interface Product {
 interface Purchase {
     id: number
     customer: Customer
-    repayment_data: string
+    repayment_date: Date
     bargain_price: number
     description: string
     created_at: string
@@ -59,6 +59,8 @@ export default {
         const paymentForm = ref({
             newPayment: 0,
             selectedProductId: null as number | null,
+            description: '',
+            productQuantity: 1,
             loading: false,
             success: false,
             error: null as string | null
@@ -87,12 +89,29 @@ export default {
             return totalReceivableAmount.value - newTotalPaidAmount.value
         })
 
+        // Selected product remaining quantity
+        const selectedProductRemainingQuantity = computed<number>(() => {
+            if (!paymentForm.value.selectedProductId) return 0
+            
+            const product = products.value.find(p => p.product_id === paymentForm.value.selectedProductId)
+            if (!product) return 0
+
+            // Calculate total paid quantity for this product
+            const totalPaidQuantity = payments.value
+                .filter(p => p.product_id === paymentForm.value.selectedProductId)
+                .reduce((sum, p) => sum + (p.product_quantity || 0), 0)
+
+            return product.quantity - totalPaidQuantity
+        })
+
         // Methods
         const closeModal = (): void => {
             // Reset payment form when closing
             paymentForm.value = {
                 newPayment: 0,
                 selectedProductId: null,
+                description: '',
+                productQuantity: 1,
                 loading: false,
                 success: false,
                 error: null
@@ -102,19 +121,15 @@ export default {
 
         const fetchPurchaseDetails = async (): Promise<void> => {
             if (!props.purchaseId) {
-                console.log('purchaseId yok:', props.purchaseId)
                 return
             }
 
-            console.log('API isteği atılıyor:', props.purchaseId)
             loading.value = true
             error.value = null
 
             try {
                 const response = await axios.get<ApiResponse>(`/purchases/${props.purchaseId}/details`)
-                console.log('API yanıtı:', response.data)
-
-                // API'den gelen veri yapısına göre ayarlama
+                console.log(response.data);
                 if (response.data.purchase && Array.isArray(response.data.purchase) && response.data.purchase.length > 0) {
                     purchaseData.value = response.data.purchase[0]
                 } else {
@@ -124,11 +139,6 @@ export default {
                 products.value = response.data.products || []
                 payments.value = response.data.payments || []
                 totalReceivableAmount.value = response.data.total_receivable_amount || 0
-
-                console.log('purchaseData:', purchaseData.value)
-                console.log('products:', products.value)
-                console.log('payments:', payments.value)
-                console.log('totalReceivableAmount:', totalReceivableAmount.value)
 
             } catch (err: any) {
                 error.value = 'Satış detayları yüklenirken bir hata oluştu.'
@@ -149,17 +159,23 @@ export default {
                 return
             }
 
+            if (!paymentForm.value.productQuantity || paymentForm.value.productQuantity <= 0) {
+                paymentForm.value.error = 'Geçerli bir ürün adedi giriniz.'
+                return
+            }
+
             paymentForm.value.loading = true
             paymentForm.value.error = null
             paymentForm.value.success = false
 
             try {
-                console.log(paymentForm.value.selectedProductId);
                 const response = await axios.post('/purchase/partial-payment', {
                     purchase_id: purchaseData.value.id,
                     product_id: paymentForm.value.selectedProductId,
                     paid_amount: newTotalPaidAmount.value,
-                    payment_amount: paymentForm.value.newPayment
+                    payment_amount: paymentForm.value.newPayment,
+                    description: paymentForm.value.description,
+                    product_quantity: paymentForm.value.productQuantity
                 })
 
                 if (response.data.success) {
@@ -171,6 +187,11 @@ export default {
                     paymentForm.value.success = true
                     paymentForm.value.newPayment = 0
                     paymentForm.value.selectedProductId = null
+                    paymentForm.value.description = ''
+                    paymentForm.value.productQuantity = 1
+
+                    // Refresh payments list
+                    await fetchPurchaseDetails()
 
                     // Hide success message after 3 seconds
                     setTimeout(() => {
@@ -178,7 +199,11 @@ export default {
                     }, 3000)
                 }
             } catch (err: any) {
-                paymentForm.value.error = 'Ödeme kaydedilirken bir hata oluştu.'
+                if (err.response?.data?.error) {
+                    paymentForm.value.error = err.response.data.error
+                } else {
+                    paymentForm.value.error = 'Ödeme kaydedilirken bir hata oluştu.'
+                }
                 console.error('Payment Error:', err)
             } finally {
                 paymentForm.value.loading = false
@@ -209,18 +234,21 @@ export default {
 
         // Watchers
         watch(() => props.isOpen, (newVal: boolean) => {
-            console.log('isOpen değişti:', newVal, 'purchaseId:', props.purchaseId)
             if (newVal && props.purchaseId) {
                 fetchPurchaseDetails()
             }
         }, { immediate: true })
 
         watch(() => props.purchaseId, (newVal: number | string | null) => {
-            console.log('purchaseId değişti:', newVal, 'isOpen:', props.isOpen)
             if (newVal && props.isOpen) {
                 fetchPurchaseDetails()
             }
         }, { immediate: true })
+
+        // Reset product quantity when product selection changes
+        watch(() => paymentForm.value.selectedProductId, () => {
+            paymentForm.value.productQuantity = 1
+        })
 
         return {
             loading,
@@ -235,6 +263,7 @@ export default {
             newTotalPaidAmount,
             remainingAmount,
             newRemainingAmount,
+            selectedProductRemainingQuantity,
             closeModal,
             formatDate,
             formatCurrency,
@@ -249,9 +278,8 @@ export default {
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="closeModal"></div>
 
-        <!-- Modal -->
         <div class="flex min-h-screen items-center justify-center p-4">
-            <div class="relative w-full max-w-4xl bg-white rounded-lg shadow-xl transform transition-all">
+            <div class="relative w-[90%] h-[90vh] bg-white rounded-lg shadow-xl transform transition-all">
                 <!-- Header -->
                 <div class="flex items-center justify-between p-6 border-b border-gray-200">
                     <h3 class="text-xl font-semibold text-gray-900">
@@ -268,7 +296,7 @@ export default {
                 </div>
 
                 <!-- Content -->
-                <div class="p-6 max-h-96 overflow-y-auto">
+                <div class="p-6 h-[calc(90vh-80px)] overflow-y-auto">
                     <!-- Loading State -->
                     <div v-if="loading" class="flex items-center justify-center py-8">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -334,7 +362,7 @@ export default {
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Geri Ödeme Tarihi</label>
-                                    <p class="mt-1 text-sm text-gray-900">{{ formatDate(purchaseData.repayment_data) }}</p>
+                                    <p class="mt-1 text-sm text-gray-900">{{ formatDate(purchaseData.repayment_date) }}</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Pazarlık Fiyatı</label>
@@ -344,7 +372,9 @@ export default {
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700">Açıklama</label>
-                                    <p class="mt-1 text-sm text-gray-900">{{ purchaseData.description || 'Açıklama yok' }}</p>
+                                    <p class="mt-1 text-sm text-gray-900 bg-white p-2 rounded border border-gray-200 min-h-[60px]">
+                                        {{ purchaseData.description || 'Açıklama yok' }}
+                                    </p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Oluşturulma Tarihi</label>
@@ -446,9 +476,45 @@ export default {
                                                 :key="product.id"
                                                 :value="product.product_id"
                                             >
-                                                {{ product.product.name }} ({{ product.quantity }} adet)
+                                                {{ product.product.name }} ({{ product.quantity }} adet - Kalan: {{ selectedProductRemainingQuantity }} adet)
                                             </option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                <!-- Product Quantity -->
+                                <div>
+                                    <label for="productQuantity" class="block text-sm font-medium text-gray-700">
+                                        Ürün Adedi
+                                    </label>
+                                    <div class="mt-1 relative">
+                                        <input
+                                            id="productQuantity"
+                                            v-model.number="paymentForm.productQuantity"
+                                            type="number"
+                                            min="1"
+                                            :max="selectedProductRemainingQuantity"
+                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Kaç adet için ödeme yapıyorsunuz?"
+                                            :disabled="paymentForm.loading"
+                                        >
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div>
+                                    <label for="description" class="block text-sm font-medium text-gray-700">
+                                        Açıklama (İsteğe Bağlı)
+                                    </label>
+                                    <div class="mt-1 relative">
+                                        <textarea
+                                            id="description"
+                                            v-model="paymentForm.description"
+                                            rows="3"
+                                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="Ödeme açıklaması giriniz..."
+                                            :disabled="paymentForm.loading"
+                                        ></textarea>
                                     </div>
                                 </div>
 
@@ -532,13 +598,16 @@ export default {
                                                     Satış ID
                                                 </th>
                                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Ürün ID
-                                                </th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Ürün Adı
                                                 </th>
                                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Ürün Adedi
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Ödenen Tutar
+                                                </th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Açıklama
                                                 </th>
                                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Ödeme Tarihi
@@ -551,13 +620,16 @@ export default {
                                                     {{ payment.purchase_id }}
                                                 </td>
                                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                                    {{ payment.product_id }}
+                                                    {{ payment.product?.name || 'N/A' }}
                                                 </td>
                                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                                                    {{ payment.product?.name || 'N/A' }}
+                                                    {{ payment.product_quantity || 'N/A' }} adet
                                                 </td>
                                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 font-medium">
                                                     {{ formatCurrency(payment.paid_amount) }}
+                                                </td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                    {{ payment.description || '-' }}
                                                 </td>
                                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                                                     {{ formatDate(payment.created_at) }}
