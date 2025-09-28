@@ -3,6 +3,19 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import type { BreadcrumbItem } from '@/types';
 
+interface Customer {
+    id: number;
+    name: string;
+    surname: string;
+    full_name: string;
+}
+
+interface Props {
+    customers: Customer[];
+}
+
+const props = defineProps<Props>();
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Malzemeler',
@@ -17,8 +30,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     name: '',
     amount: '',
+    paid_amount: '',
     quantity: '',
-    unit: ''
+    unit: '',
+    description: '',
+    customer_id: ''
 });
 
 const submitForm = () => {
@@ -91,10 +107,9 @@ const unitOptions = [
                             </p>
                         </div>
 
-                        <!-- Toplam Ödenen Fiyat -->
                         <div class="space-y-2">
                             <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Toplam Ödenen Fiyat <span class="text-red-500">*</span>
+                                Toplam Ürün Değeri <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -114,6 +129,31 @@ const unitOptions = [
                             </div>
                             <p v-if="form.errors.amount" class="text-sm text-red-600 dark:text-red-400">
                                 {{ form.errors.amount }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Ödenen Tutar <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 dark:text-gray-400">₺</span>
+                                </div>
+                                <input
+                                    id="amount"
+                                    v-model="form.paid_amount"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    required
+                                    class="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
+                                    placeholder="0.00"
+                                    :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.paid_amount }"
+                                />
+                            </div>
+                            <p v-if="form.errors.paid_amount" class="text-sm text-red-600 dark:text-red-400">
+                                {{ form.errors.paid_amount }}
                             </p>
                         </div>
 
@@ -161,6 +201,45 @@ const unitOptions = [
                         </p>
                     </div>
 
+                    <!-- Müşteri Seçimi -->
+                    <div class="mt-6 space-y-2">
+                        <label for="customer_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Müşteri (Opsiyonel)
+                        </label>
+                        <select
+                            id="customer_id"
+                            v-model="form.customer_id"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
+                            :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.customer_id }"
+                        >
+                            <option value="">Müşteri seçin (opsiyonel)</option>
+                            <option v-for="customer in props.customers" :key="customer.id" :value="customer.id">
+                                {{ customer.full_name }}
+                            </option>
+                        </select>
+                        <p v-if="form.errors.customer_id" class="text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.customer_id }}
+                        </p>
+                    </div>
+
+                    <!-- Açıklama -->
+                    <div class="mt-6 space-y-2">
+                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Açıklama (Opsiyonel)
+                        </label>
+                        <textarea
+                            id="description"
+                            v-model="form.description"
+                            rows="3"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
+                            placeholder="Malzeme hakkında ek bilgiler..."
+                            :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.description }"
+                        ></textarea>
+                        <p v-if="form.errors.description" class="text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.description }}
+                        </p>
+                    </div>
+
                     <!-- Özet Bilgisi -->
                     <div v-if="form.name && form.quantity && form.amount && form.unit" class="mt-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                         <h3 class="text-sm font-medium text-green-800 dark:text-green-200 mb-2">
@@ -169,7 +248,9 @@ const unitOptions = [
                         <div class="text-sm text-green-700 dark:text-green-300 space-y-1">
                             <p><strong>Malzeme:</strong> {{ form.name }}</p>
                             <p><strong>Miktar:</strong> {{ form.quantity }} {{ form.unit }}</p>
-                            <p><strong>Toplam Ödenen Fiyat:</strong> {{ parseFloat(form.amount).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }) }}</p>
+                            <p><strong>Toplam Ödenecek Fiyat:</strong> {{ parseFloat(form.amount).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }) }}</p>
+                            <p v-if="form.customer_id"><strong>Müşteri:</strong> {{ props.customers.find(c => c.id == form.customer_id)?.full_name }}</p>
+                            <p v-if="form.description"><strong>Açıklama:</strong> {{ form.description }}</p>
                         </div>
                     </div>
 

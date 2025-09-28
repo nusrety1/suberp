@@ -44,7 +44,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Purchase extends Model
 {
     protected $fillable = [
-        'customer_id', 'repayment_date', 'bargain_price', 'payment_method', 'paid_amount',
+        'customer_id', 'repayment_date', 'bargain_price', 'payment_method', 'paid_amount', 'description',
     ];
 
     public function customer(): BelongsTo

@@ -45,9 +45,10 @@ const loading = ref(false);
 
 const form = useForm({
     customer_id: '',
-    repayment_data: '',
+    repayment_date: '',
     bargain_price: '',
     payment_method: '',
+    description: '',
     products: [] as ProductItem[]
 });
 
@@ -180,19 +181,19 @@ onMounted(() => {
 
                         <!-- Ödeme Tarihi -->
                         <div class="space-y-2">
-                            <label for="repayment_data" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label for="repayment_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Ödeme Tarihi <span class="text-red-500">*</span>
                             </label>
                             <input
-                                id="repayment_data"
-                                v-model="form.repayment_data"
+                                id="repayment_date"
+                                v-model="form.repayment_date"
                                 type="date"
                                 required
                                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
-                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.repayment_data }"
+                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.repayment_date }"
                             />
-                            <p v-if="form.errors.repayment_data" class="text-sm text-red-600 dark:text-red-400">
-                                {{ form.errors.repayment_data }}
+                            <p v-if="form.errors.repayment_date" class="text-sm text-red-600 dark:text-red-400">
+                                {{ form.errors.repayment_date }}
                             </p>
                         </div>
 
@@ -241,6 +242,24 @@ onMounted(() => {
                                 Toplam tutardan düşülecek indirim miktarı
                             </p>
                         </div>
+
+                        <!-- Açıklama -->
+                        <div class="space-y-2 md:col-span-2">
+                            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Açıklama
+                            </label>
+                            <textarea
+                                id="description"
+                                v-model="form.description"
+                                rows="3"
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors duration-200"
+                                :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors.description }"
+                                placeholder="Satış ile ilgili notlar veya açıklamalar..."
+                            ></textarea>
+                            <p v-if="form.errors.description" class="text-sm text-red-600 dark:text-red-400">
+                                {{ form.errors.description }}
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Seçilen Ödeme Yöntemi Bilgi Kutusu -->
@@ -265,19 +284,6 @@ onMounted(() => {
 
                     <!-- Ürünler Bölümü -->
                     <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-                                Ürünler
-                            </h2>
-                            <button
-                                type="button"
-                                @click="addProduct"
-                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200"
-                            >
-                                + Ürün Ekle
-                            </button>
-                        </div>
-
                         <!-- Ürün Listesi -->
                         <div class="space-y-4">
                             <div
@@ -340,6 +346,7 @@ onMounted(() => {
                                             step="0.01"
                                             min="0"
                                             required
+                                            disabled
                                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:text-white transition-colors duration-200"
                                             :class="{ 'border-red-500 focus:ring-red-500 focus:border-red-500': form.errors[`products.${index}.purchase_time_unit_price`] }"
                                         />

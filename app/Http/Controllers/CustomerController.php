@@ -5,24 +5,135 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CompanyListBasicRequest;
 use App\Http\Requests\CustomerCreateRequest;
 use App\Models\Customer;
+use App\Models\Payment;
 use App\Models\Purchase;
+use App\Models\Supply;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CustomerController extends Controller
 {
+    /**
+     * Müşteri için ürün bazlı satış verilerini getirir
+     */
+    private function getProductBasedSales(int $customerId, Request $request): array
+    {
+        // Müşterinin tüm satışlarını ve ürünlerini getir
+        $query = Purchase::with(['products.product', 'products.payments'])
+            ->where('customer_id', $customerId);
+
+        // Tarih filtresi
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $purchases = $query->get();
+
+        // Ürün bazlı satışları gruplandır
+        $productBasedSales = [];
+        $productPayments = [];
+        $productBargainDiscounts = []; // Ürün bazlı pazarlık indirimleri
+
+        // Önce tüm satışları ve ödemeleri topla
+        foreach ($purchases as $purchase) {
+            foreach ($purchase->products as $purchaseProduct) {
+                $productId = $purchaseProduct->product_id;
+                $productName = $purchaseProduct->product->name;
+                $quantity = $purchaseProduct->quantity;
+                $currentPrice = $purchaseProduct->product->price;
+                $purchaseTimePrice = $purchaseProduct->purchase_time_unit_price;
+
+                // Ürün daha önce eklenmiş mi kontrol et
+                if (! isset($productBasedSales[$productId])) {
+                    $productBasedSales[$productId] = [
+                        'product_id' => $productId,
+                        'product_name' => $productName,
+                        'total_quantity' => 0,
+                        'current_price' => $currentPrice,
+                        'total_current_value' => 0,
+                        'total_paid_amount' => 0, // Toplam ödenen miktar
+                        'total_bargain_discount' => 0, // Toplam pazarlık indirimi
+                        'remaining_debt' => 0, // Kalan borç
+                        'purchases' => [],
+                    ];
+                    $productPayments[$productId] = 0; // Ürün için toplam ödemeleri takip et
+                    $productBargainDiscounts[$productId] = 0; // Ürün için toplam pazarlık indirimlerini takip et
+                }
+
+                // Ürün bilgilerini güncelle
+                $productBasedSales[$productId]['total_quantity'] += $quantity;
+                $productBasedSales[$productId]['total_current_value'] += $currentPrice * $quantity;
+
+                // Bu ürün için yapılan ödemeleri topla
+                $paidAmount = 0;
+                // Payment modelinden ödemeleri al
+                $payments = \App\Models\Payment::where('purchase_id', $purchase->id)
+                    ->where('product_id', $productId)
+                    ->sum('paid_amount');
+                $paidAmount += $payments;
+                $productPayments[$productId] += $paidAmount;
+
+                // Ürünün toplam değerine göre pazarlık indirimini orantılı olarak hesapla
+                $totalPurchaseValue = 0;
+                foreach ($purchase->products as $pp) {
+                    $totalPurchaseValue += $pp->purchase_time_unit_price * $pp->quantity;
+                }
+
+                // Bu ürünün satın alma içindeki oranını hesapla
+                $productRatio = ($purchaseTimePrice * $quantity) / $totalPurchaseValue;
+
+                // Bu ürüne düşen pazarlık indirimi
+                $productBargainDiscount = $purchase->bargain_price * $productRatio;
+                $productBargainDiscounts[$productId] += $productBargainDiscount;
+
+                // Satış bilgisini ekle
+                $productBasedSales[$productId]['purchases'][] = [
+                    'purchase_id' => $purchase->id,
+                    'purchase_date' => $purchase->created_at,
+                    'quantity' => $quantity,
+                    'purchase_time_price' => $purchaseTimePrice,
+                    'current_price' => $currentPrice,
+                    'purchase_time_total' => $purchaseTimePrice * $quantity,
+                    'current_total' => $currentPrice * $quantity,
+                    'paid_amount' => $paidAmount, // Bu satış için ödenen miktar
+                    'bargain_discount' => $productBargainDiscount, // Bu satış için pazarlık indirimi
+                ];
+            }
+        }
+
+        // Ödeme bilgilerini ekle
+        foreach ($productBasedSales as $productId => &$productSale) {
+            $productSale['total_paid_amount'] = $productPayments[$productId];
+            $productSale['total_bargain_discount'] = $productBargainDiscounts[$productId];
+            $productSale['remaining_debt'] = $productSale['total_current_value'] - $productPayments[$productId] - $productBargainDiscounts[$productId];
+        }
+
+        // Diziden değerleri al ve sırala
+        $result = array_values($productBasedSales);
+
+        // Toplam miktara göre azalan sıralama
+        usort($result, function ($a, $b) {
+            return $b['total_quantity'] - $a['total_quantity'];
+        });
+
+        return $result;
+    }
+
     public function create(CustomerCreateRequest $request)
     {
-        $fullName = $request->name.' '.$request->surname;
+        $fullName = $request->input('name').' '.$request->input('surname');
 
         $isCreate = Customer::query()->create([
-            'name' => $request->name,
-            'surname' => $request->surname,
+            'name' => $request->input('name'),
+            'surname' => $request->input('surname'),
             'full_name' => $fullName,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'description' => $request->description,
+            'email' => $request->input('email'),
+            'phone' => $request->input('phone'),
+            'address' => $request->input('address'),
+            'description' => $request->input('description'),
         ]);
 
         return $isCreate ? to_route('customers') : false;
@@ -94,6 +205,14 @@ class CustomerController extends Controller
         $totalPaid = $purchases->sum('paid_amount');
         $remainingDebt = $totalDebt - $totalPaid;
 
+        // Ürün bazlı satış verilerini getir
+        $productBasedSales = $this->getProductBasedSales($id, $request);
+
+        // Müşteriden alınan malzemeleri getir
+        $supplies = Supply::where('customer_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         return Inertia::render('CustomerDetails', [
             'customer' => $customer,
             'purchases' => $purchases,
@@ -102,6 +221,57 @@ class CustomerController extends Controller
             'remainingDebt' => $remainingDebt,
             'totalBargainDiscount' => $totalBargainDiscount,
             'filters' => $request->only(['date_from', 'date_to', 'search']),
+            'productBasedSales' => $productBasedSales,
+            'supplies' => $supplies,
+        ]);
+    }
+
+    /**
+     * Müşterinin ödeme geçmişini getirir
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function paymentHistory(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        // Müşterinin satışlarını al
+        $purchaseIds = Purchase::where('customer_id', $id)->pluck('id');
+
+        // Ödemeleri getir
+        $query = Payment::with(['purchase', 'product'])
+            ->whereIn('purchase_id', $purchaseIds)
+            ->orderBy('created_at', 'desc');
+
+        // Tarih filtresi
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Arama filtresi
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('description', 'like', "%{$searchTerm}%")
+                    ->orWhereHas('product', function ($productQuery) use ($searchTerm) {
+                        $productQuery->where('name', 'like', "%{$searchTerm}%");
+                    });
+            });
+        }
+
+        $payments = $query->paginate(20);
+
+        // Toplam ödeme miktarını hesapla
+        $totalPaidAmount = $payments->sum('paid_amount');
+
+        return response()->json([
+            'payments' => $payments,
+            'totalPaidAmount' => $totalPaidAmount,
+            'customer' => $customer,
         ]);
     }
 }
