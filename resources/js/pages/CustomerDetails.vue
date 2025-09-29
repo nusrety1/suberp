@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PurchaseDetail from '@/components/PurchaseDetail.vue';
 import SupplyPaymentModal from '@/components/SupplyPaymentModal.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import axios from 'axios';
 import type { BreadcrumbItem } from '@/types';
 
@@ -145,33 +145,6 @@ const switchTab = (tab: string) => {
     activeTab.value = tab;
     if (tab === 'payments') {
         fetchPaymentHistory();
-    }
-};
-
-// Satış durumu helpers (Satın Alımlar sayfasıyla senkron)
-const getStatusColor = (repaymentDate: string) => {
-    const today = new Date();
-    const repayment = new Date(repaymentDate);
-
-    if (repayment < today) {
-        return 'bg-red-100 text-red-800';
-    } else if (repayment.getTime() - today.getTime() < 7 * 24 * 60 * 60 * 1000) {
-        return 'bg-yellow-100 text-yellow-800';
-    } else {
-        return 'bg-green-100 text-green-800';
-    }
-};
-
-const getStatusText = (repaymentDate: string) => {
-    const today = new Date();
-    const repayment = new Date(repaymentDate);
-
-    if (repayment < today) {
-        return 'Gecikmiş';
-    } else if (repayment.getTime() - today.getTime() < 7 * 24 * 60 * 60 * 1000) {
-        return 'Yaklaşıyor';
-    } else {
-        return 'Zamanında';
     }
 };
 
