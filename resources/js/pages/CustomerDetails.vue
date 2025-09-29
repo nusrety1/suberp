@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PurchaseDetail from '@/components/PurchaseDetail.vue';
 import SupplyPaymentModal from '@/components/SupplyPaymentModal.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import axios from 'axios';
 import type { BreadcrumbItem } from '@/types';
 
@@ -32,6 +32,8 @@ interface Purchase {
     created_at: string;
     updated_at: string;
     products: PurchaseProduct[];
+    // Backend tarafından eklendi: bu satış için ödenen toplam ürün adedi
+    paid_product_quantity?: number;
 }
 
 interface Customer {
@@ -64,6 +66,7 @@ interface ProductBasedSale {
     current_price: number;
     total_current_value: number;
     total_paid_amount: number;
+    paid_product_quantity: number;
     total_bargain_discount: number; // Toplam pazarlık indirimi
     remaining_debt: number;
     showDetails?: boolean;
@@ -76,6 +79,7 @@ interface ProductBasedSale {
         purchase_time_total: number;
         current_total: number;
         paid_amount: number;
+        paid_quantity: number;
         bargain_discount: number; // Satış başına pazarlık indirimi
     }[];
 }
@@ -92,6 +96,7 @@ interface Supply {
     customer_id: number | null;
     created_at: string;
     updated_at: string;
+    customer: Customer | null;
 }
 
 interface PaginatedSupplies {
@@ -519,6 +524,9 @@ const fetchPaymentHistory = async () => {
                                     Ödenen
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Ödenen Adet
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Kalan
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -553,6 +561,9 @@ const fetchPaymentHistory = async () => {
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ formatCurrency(purchase.paid_amount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ purchase.paid_product_quantity ?? 0 }} adet
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ formatCurrency(calculateCurrentTotal(purchase) - purchase.paid_amount) }}
@@ -701,6 +712,9 @@ const fetchPaymentHistory = async () => {
                                     Toplam Ödenen
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Toplam Ödenen Adet
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Pazarlık İndirimi
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -727,6 +741,9 @@ const fetchPaymentHistory = async () => {
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ formatCurrency(productSale.total_paid_amount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ productSale.paid_product_quantity ?? 0 }} adet
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
                                     {{ formatCurrency(productSale.total_bargain_discount) }}
@@ -786,6 +803,9 @@ const fetchPaymentHistory = async () => {
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Ödenen Miktar
                                     </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Ödenen Adet
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -816,6 +836,9 @@ const fetchPaymentHistory = async () => {
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {{ formatCurrency(purchase.paid_amount) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ purchase.paid_quantity ?? 0 }} adet
                                     </td>
                                 </tr>
                             </tbody>
