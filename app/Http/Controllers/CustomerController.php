@@ -35,6 +35,7 @@ class CustomerController extends Controller
         // Ürün bazlı satışları gruplandır
         $productBasedSales = [];
         $productPayments = [];
+        $productPaidQuantities = []; // Ürün bazında ödenen toplam adet
         $productBargainDiscounts = []; // Ürün bazlı pazarlık indirimleri
 
         // Önce tüm satışları ve ödemeleri topla
@@ -55,11 +56,13 @@ class CustomerController extends Controller
                         'current_price' => $currentPrice,
                         'total_current_value' => 0,
                         'total_paid_amount' => 0, // Toplam ödenen miktar
+                        'paid_product_quantity' => 0, // Toplam ödenen adet
                         'total_bargain_discount' => 0, // Toplam pazarlık indirimi
                         'remaining_debt' => 0, // Kalan borç
                         'purchases' => [],
                     ];
                     $productPayments[$productId] = 0; // Ürün için toplam ödemeleri takip et
+                    $productPaidQuantities[$productId] = 0; // Ürün için toplam ödenen adet
                     $productBargainDiscounts[$productId] = 0; // Ürün için toplam pazarlık indirimlerini takip et
                 }
 
@@ -68,13 +71,16 @@ class CustomerController extends Controller
                 $productBasedSales[$productId]['total_current_value'] += $currentPrice * $quantity;
 
                 // Bu ürün için yapılan ödemeleri topla
-                $paidAmount = 0;
-                // Payment modelinden ödemeleri al
-                $payments = \App\Models\Payment::where('purchase_id', $purchase->id)
+                $paidAmount = (float) \App\Models\Payment::where('purchase_id', $purchase->id)
                     ->where('product_id', $productId)
                     ->sum('paid_amount');
-                $paidAmount += $payments;
                 $productPayments[$productId] += $paidAmount;
+
+                // Bu ürün için ödenen adetleri topla
+                $paidQuantityForPurchase = (int) \App\Models\Payment::where('purchase_id', $purchase->id)
+                    ->where('product_id', $productId)
+                    ->sum('product_quantity');
+                $productPaidQuantities[$productId] += $paidQuantityForPurchase;
 
                 // Ürünün toplam değerine göre pazarlık indirimini orantılı olarak hesapla
                 $totalPurchaseValue = 0;
@@ -98,7 +104,8 @@ class CustomerController extends Controller
                     'current_price' => $currentPrice,
                     'purchase_time_total' => $purchaseTimePrice * $quantity,
                     'current_total' => $currentPrice * $quantity,
-                    'paid_amount' => $paidAmount, // Bu satış için ödenen miktar
+                    'paid_amount' => $paidAmount, // Bu satış için ödenen tutar
+                    'paid_quantity' => $paidQuantityForPurchase, // Bu satış için ödenen adet
                     'bargain_discount' => $productBargainDiscount, // Bu satış için pazarlık indirimi
                 ];
             }
@@ -107,6 +114,7 @@ class CustomerController extends Controller
         // Ödeme bilgilerini ekle
         foreach ($productBasedSales as $productId => &$productSale) {
             $productSale['total_paid_amount'] = $productPayments[$productId];
+            $productSale['paid_product_quantity'] = $productPaidQuantities[$productId];
             $productSale['total_bargain_discount'] = $productBargainDiscounts[$productId];
             $productSale['remaining_debt'] = $productSale['total_current_value'] - $productPayments[$productId] - $productBargainDiscounts[$productId];
         }
@@ -182,6 +190,16 @@ class CustomerController extends Controller
         }
 
         $purchases = $query->paginate(20);
+
+        // Her satış için ödenen ürün adedi toplamını ekle
+        foreach ($purchases->items() as $purchase) {
+            // Bu satıştaki tüm ürünler için yapılan ödemelerdeki ürün adetlerinin toplamı
+            $paidQuantity = \App\Models\Payment::where('purchase_id', $purchase->id)
+                ->sum('product_quantity');
+
+            // Frontend'de kullanmak üzere dinamik özellik ekle
+            $purchase->paid_product_quantity = (int) ($paidQuantity ?? 0);
+        }
 
         // Toplam borç hesaplama (güncel fiyatlarla)
         $totalDebt = 0;
