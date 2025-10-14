@@ -136,17 +136,23 @@ const closePaymentModal = () => {
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Miktar
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Toplam Malzeme Değeri
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Toplam Ödenen Tutar
-                            </th>
+<!--                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                Toplam Malzeme Değeri-->
+<!--                            </th>-->
+<!--                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                                Toplam Ödenen Tutar-->
+<!--                            </th>-->
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Açıklama
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Kayıt Tarihi
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Toplam Malzeme Değeri
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Toplam Ödenen Tutar
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Kalan Borç
@@ -191,16 +197,16 @@ const closePaymentModal = () => {
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ formatAmount(supply.amount) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ formatAmount(supply.paid_amount) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ supply.description ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ formatDate(supply.created_at) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ formatAmount(supply.amount) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ formatAmount(supply.paid_amount) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" :class="(supply.amount - supply.paid_amount) > 0 ? 'text-red-600' : 'text-green-600'">
                                 {{ formatAmount(supply.amount - supply.paid_amount) }}
