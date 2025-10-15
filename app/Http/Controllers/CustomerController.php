@@ -120,17 +120,13 @@ class CustomerController extends Controller
             // Kalan ürün adedi hesaplama
             $remainingQuantity = max(0, $productSale['total_quantity'] - $productSale['paid_product_quantity']);
 
-            // Eğer kalan miktar yoksa, borç da yoktur
             if ($remainingQuantity <= 0) {
                 $productSale['remaining_debt'] = 0;
             } else {
-                // Ürünün güncel birim fiyatını al
                 $currentUnitPrice = $productSale['current_price'];
 
-                // Kalan pazarlık indirimi oranını hesapla
                 $bargainDiscountRatio = $productSale['total_bargain_discount'] * $remainingQuantity / $productSale['total_quantity'];
 
-                // Kalan borç = Kalan ürün adedi x Güncel birim fiyat - Pazarlık indirimi oranı
                 $productSale['remaining_debt'] = ($remainingQuantity * $currentUnitPrice) - $bargainDiscountRatio;
             }
         }

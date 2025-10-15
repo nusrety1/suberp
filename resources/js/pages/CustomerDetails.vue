@@ -139,7 +139,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // Tab yönetimi
-const activeTab = ref('purchases'); // 'purchases', 'product-based', 'supplies' veya 'payments'
+const activeTab = ref('product-based'); // 'purchases', 'product-based', 'supplies' veya 'payments'
 
 const switchTab = (tab: string) => {
     activeTab.value = tab;
@@ -401,16 +401,16 @@ const fetchPaymentHistory = async () => {
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
                 <div class="border-b border-gray-200">
                     <nav class="flex -mb-px">
-                        <button
-                            @click="switchTab('purchases')"
-                            :class="{
-                                'border-blue-500 text-blue-600': activeTab === 'purchases',
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'purchases'
-                            }"
-                            class="py-4 px-6 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
-                        >
-                            Satış Geçmişi
-                        </button>
+<!--                        <button-->
+<!--                            @click="switchTab('purchases')"-->
+<!--                            :class="{-->
+<!--                                'border-blue-500 text-blue-600': activeTab === 'purchases',-->
+<!--                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'purchases'-->
+<!--                            }"-->
+<!--                            class="py-4 px-6 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"-->
+<!--                        >-->
+<!--                            Satış Geçmişi-->
+<!--                        </button>-->
                         <button
                             @click="switchTab('product-based')"
                             :class="{
