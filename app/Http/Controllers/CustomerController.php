@@ -213,27 +213,50 @@ class CustomerController extends Controller
             $purchase->paid_product_quantity = (int) ($paidQuantity ?? 0);
         }
 
-        // Toplam borç hesaplama (güncel fiyatlarla)
+        // Toplam borç hesaplama (ürün bazında kalan adet × güncel fiyat)
         $totalDebt = 0;
         $totalBargainDiscount = 0;
+        $totalCurrentValue = 0; // Tüm ürünlerin güncel toplam değeri
+        $totalPaidProductQuantity = 0; // Toplam ödenen ürün adedi
 
         foreach ($purchases->items() as $purchase) {
-            $purchaseTotal = 0;
+            // Bu satıştaki tüm ürünlerin güncel toplam değerini hesapla
+            $purchaseCurrentValue = 0;
+            $purchaseTotalQuantity = 0;
+
             foreach ($purchase->products as $purchaseProduct) {
                 $currentPrice = $purchaseProduct->product->price;
                 $quantity = $purchaseProduct->quantity;
-                $purchaseTotal += $currentPrice * $quantity;
+                $purchaseCurrentValue += $currentPrice * $quantity;
+                $purchaseTotalQuantity += $quantity;
             }
 
-            // Pazarlık indirimini çıkar
-            $purchaseTotal -= $purchase->bargain_price;
-            $totalDebt += $purchaseTotal;
+            $totalCurrentValue += $purchaseCurrentValue;
             $totalBargainDiscount += $purchase->bargain_price;
+
+            // Bu satış için ödenen ürün adetini al
+            $paidQuantityForPurchase = \App\Models\Payment::where('purchase_id', $purchase->id)
+                ->sum('product_quantity');
+            $totalPaidProductQuantity += $paidQuantityForPurchase;
+
+            // Kalan ürün adedini hesapla
+            $remainingQuantity = max(0, $purchaseTotalQuantity - $paidQuantityForPurchase);
+
+            if ($remainingQuantity > 0) {
+                // Kalan adet için güncel fiyatlarla borç hesapla
+                $remainingRatio = $remainingQuantity / $purchaseTotalQuantity;
+
+                // Kalan borç = (Kalan adet oranı × Güncel toplam değer) - (Kalan adet oranı × Pazarlık indirimi)
+                $remainingDebtForPurchase = ($remainingRatio * $purchaseCurrentValue) - ($remainingRatio * $purchase->bargain_price);
+                $totalDebt += $remainingDebtForPurchase;
+            }
         }
 
-        // Ödenen miktarı çıkar
+        // Toplam ödenen miktar
         $totalPaid = $purchases->sum('paid_amount');
-        $remainingDebt = $totalDebt - $totalPaid;
+
+        // Kalan borç (artık totalDebt zaten doğru hesaplandı)
+        $remainingDebt = max(0, $totalDebt);
 
         // Ürün bazlı satış verilerini getir
         $productBasedSales = $this->getProductBasedSales($id, $request);
