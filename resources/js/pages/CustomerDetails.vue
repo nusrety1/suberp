@@ -139,7 +139,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // Tab yönetimi
-const activeTab = ref('purchases'); // 'purchases', 'product-based', 'supplies' veya 'payments'
+const activeTab = ref('product-based'); // 'purchases', 'product-based', 'supplies' veya 'payments'
 
 const switchTab = (tab: string) => {
     activeTab.value = tab;
@@ -335,22 +335,6 @@ const fetchPaymentHistory = async () => {
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
-                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Toplam Borç (Pazarlık İndirimi Sonrası)</p>
-                            <p class="text-2xl font-semibold text-gray-900">{{ formatCurrency(props.totalDebt) }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
                             <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
                                 <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -401,16 +385,16 @@ const fetchPaymentHistory = async () => {
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
                 <div class="border-b border-gray-200">
                     <nav class="flex -mb-px">
-                        <button
-                            @click="switchTab('purchases')"
-                            :class="{
-                                'border-blue-500 text-blue-600': activeTab === 'purchases',
-                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'purchases'
-                            }"
-                            class="py-4 px-6 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
-                        >
-                            Satış Geçmişi
-                        </button>
+<!--                        <button-->
+<!--                            @click="switchTab('purchases')"-->
+<!--                            :class="{-->
+<!--                                'border-blue-500 text-blue-600': activeTab === 'purchases',-->
+<!--                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'purchases'-->
+<!--                            }"-->
+<!--                            class="py-4 px-6 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"-->
+<!--                        >-->
+<!--                            Satış Geçmişi-->
+<!--                        </button>-->
                         <button
                             @click="switchTab('product-based')"
                             :class="{
